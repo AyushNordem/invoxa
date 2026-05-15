@@ -1,7 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../../../core/utils/app_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../../../../core/services/cloudinary_service.dart';
+import '../../../../core/services/firestore_service.dart';
+import '../../../../core/utils/app_snackbar.dart';
+import '../../../../routes/app_pages.dart';
 
 class BusinessSetupController extends GetxController {
   final currentStep = 0.obs;
@@ -82,15 +87,53 @@ class BusinessSetupController extends GetxController {
     }
   }
 
+  final FirestoreService _firestoreService = FirestoreService();
+
   Future<void> saveAndContinue() async {
-    if (formKey4.currentState?.validate() ?? false) {
+    if (formKey1.currentState?.validate() ?? false) {
+      if (logoPath.value.isEmpty) {
+        AppSnackbar.showError(title: 'Validation', message: 'Please upload your business logo.');
+        return;
+      }
       isLoading.value = true;
       try {
-        // TODO: Upload images to Firebase Storage
-        // TODO: Save business data to Firestore
-        await Future.delayed(const Duration(seconds: 2));
+        String? logoUrl;
+        String? signatureUrl;
+
+        // Upload images to Cloudinary
+        if (logoPath.value.isNotEmpty && !logoPath.value.startsWith('http')) {
+          logoUrl = await CloudinaryService.uploadImage(logoPath.value);
+        } else {
+          logoUrl = logoPath.value;
+        }
+
+        if (signaturePath.value.isNotEmpty && !signaturePath.value.startsWith('http')) {
+          signatureUrl = await CloudinaryService.uploadImage(signaturePath.value);
+        } else {
+          signatureUrl = signaturePath.value;
+        }
+
+        // Prepare business data
+        final businessData = {
+          'businessName': businessNameController.text.trim(),
+          'ownerName': ownerNameController.text.trim(),
+          'email': emailController.text.trim(),
+          'mobile': mobileController.text.trim(),
+          'website': websiteController.text.trim(),
+          'logoUrl': logoUrl,
+          'signatureUrl': signatureUrl,
+          'address': {'street': addressController.text.trim(), 'state': stateValue.value, 'city': cityController.text.trim(), 'pincode': pincodeController.text.trim()},
+          'bankDetails': {'accountHolder': accountHolderController.text.trim(), 'bankName': bankNameController.text.trim(), 'accountNumber': accountNumberController.text.trim(), 'ifsc': ifscController.text.trim(), 'branch': branchController.text.trim()},
+          'taxSettings': {'gstNumber': gstController.text.trim(), 'taxNumber': taxNumberController.text.trim(), 'currency': currencyValue.value, 'defaultTax': defaultTaxController.text.trim(), 'enableCGST': enableCGST.value, 'enableSGST': enableSGST.value, 'enableIGST': enableIGST.value},
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        };
+
+        // Save to Firestore
+        await _firestoreService.saveBusinessDetails(businessData);
+
         AppSnackbar.showSuccess(title: 'Success', message: 'Business setup completed!');
-        Get.offAllNamed('/dashboard'); // placeholder route
+        Get.offAllNamed(Routes.HOME);
       } catch (e) {
         AppSnackbar.showError(title: 'Error', message: e.toString());
       } finally {
@@ -103,6 +146,32 @@ class BusinessSetupController extends GetxController {
 
   String? validateRequired(String? value, String field) {
     if (value == null || value.trim().isEmpty) return '$field is required';
+    return null;
+  }
+
+  String? validateEmail(String? value) {
+    if (value == null || value.isEmpty) return 'Email is required';
+    if (!GetUtils.isEmail(value)) return 'Enter a valid email address';
+    return null;
+  }
+
+  String? validatePhone(String? value) {
+    if (value == null || value.isEmpty) return 'Phone number is required';
+    if (value.length < 10) return 'Enter a valid 10-digit phone number';
+    return null;
+  }
+
+  String? validateGST(String? value) {
+    if (value == null || value.isEmpty) return null; // Optional but if provided should be valid? Actually user might want it required.
+    // Basic GST format: 22AAAAA0000A1Z5
+    if (value.isNotEmpty && value.length != 15) return 'GST number must be 15 characters';
+    return null;
+  }
+
+  String? validatePincode(String? value) {
+    if (value == null || value.isEmpty) return 'Pincode is required';
+    if (value.length != 6) return 'Pincode must be 6 digits';
+    if (!GetUtils.isNumericOnly(value)) return 'Pincode must be numeric';
     return null;
   }
 

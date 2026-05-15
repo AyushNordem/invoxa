@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:invoxa/app/presentation/widgets/log_print_condition.dart';
 import 'package:invoxa/app/routes/app_pages.dart';
 
+import '../../../../core/services/firestore_service.dart';
 import '../../../../core/utils/app_snackbar.dart';
 
 class LoginController extends GetxController {
@@ -37,7 +38,13 @@ class LoginController extends GetxController {
       try {
         await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text.trim(), password: passwordController.text);
         AppSnackbar.showSuccess(title: 'Success', message: 'Logged in successfully');
-        Get.offAllNamed(Routes.BUSINESS_SETUP);
+
+        final isSetup = await FirestoreService().isBusinessSetupComplete();
+        if (isSetup) {
+          Get.offAllNamed(Routes.HOME);
+        } else {
+          Get.offAllNamed(Routes.BUSINESS_SETUP);
+        }
       } on FirebaseAuthException catch (e) {
         logPrint(e);
         AppSnackbar.showError(title: 'Error', message: e.message ?? 'An error occurred');
