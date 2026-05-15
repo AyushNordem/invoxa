@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "484238474473",
+    "project_id": "invoxa-5ebb5",
+    "storage_bucket": "invoxa-5ebb5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484238474473:android:a036cf9441152760634478",
+        "android_client_info": {
+          "package_name": "com.invoxa.bill"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvtTxaoCMZ2yivKh8j7f0h3_o4AMOP4SQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
