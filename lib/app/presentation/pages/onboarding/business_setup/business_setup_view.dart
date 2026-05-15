@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:invoxa/app/presentation/widgets/base_view.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_sizes.dart';
@@ -14,58 +15,28 @@ class BusinessSetupView extends GetView<BusinessSetupController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primary),
-          onPressed: () => Get.back(),
-        ),
-        title: Text('Invoxa', style: StyleResource.instance.styleBold(fontSize: 18, color: AppColors.primary)),
-        titleSpacing: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.more_vert, color: AppColors.primary),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
+    return BaseView(
+      title: 'Business Setup',
+      showBackButton: false,
+      child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20.0),
         child: Form(
           key: controller.formKey1,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('STEP 4 OF 4', style: StyleResource.instance.styleBold(fontSize: 10, color: AppColors.primary)),
-                  Text('Final Completion', style: StyleResource.instance.styleMedium(fontSize: 10, color: AppColors.greyText)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Container(
-                height: 4,
-                width: double.infinity,
-                decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(2)),
-              ),
-              const SizedBox(height: AppSpacing.xl),
               Text('Business Profile', style: StyleResource.instance.styleBold(fontSize: 28, color: AppColors.black)),
               const SizedBox(height: AppSpacing.sm),
               Text('Finalize your professional identity and banking details for seamless invoicing.', style: StyleResource.instance.styleRegular(fontSize: 14, color: AppColors.greyText)),
-              const SizedBox(height: AppSpacing.xxl),
-
+              const SizedBox(height: AppSpacing.lg),
               _buildSectionCard(
-                icon: Icons.folder,
+                icon: Icons.business,
                 title: 'Business Information',
                 children: [
                   _buildUploadBox(label: 'Upload Business Logo', subtext: 'SVG, PNG or JPG (max. 2MB)', isLogo: true),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.md),
+
                   CustomTextField(label: 'Business Name', hint: 'e.g. Acme Corp', controller: controller.businessNameController),
                   const SizedBox(height: AppSpacing.md),
                   CustomTextField(label: 'Owner Name', hint: 'John Doe', controller: controller.ownerNameController),
@@ -88,7 +59,6 @@ class BusinessSetupView extends GetView<BusinessSetupController> {
                 ],
               ),
               const SizedBox(height: AppSpacing.xl),
-
               _buildSectionCard(
                 icon: Icons.account_balance,
                 title: 'Banking Information',
@@ -145,27 +115,21 @@ class BusinessSetupView extends GetView<BusinessSetupController> {
   }
 
   Widget _buildSectionCard({required IconData icon, required String title, required List<Widget> children}) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.02), blurRadius: 10, spreadRadius: 2)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, color: AppColors.primary, size: 20),
-              const SizedBox(width: 8),
-              Text(title, style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.black)),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          ...children,
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: AppSpacing.sm),
+        Row(
+          children: [
+            Icon(icon, color: AppColors.primary, size: 20),
+            const SizedBox(width: 8),
+            Text(title, style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.black)),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.lg),
+        ...children,
+        const SizedBox(height: AppSpacing.sm),
+      ],
     );
   }
 
@@ -176,9 +140,8 @@ class BusinessSetupView extends GetView<BusinessSetupController> {
         onTap: () => controller.pickImage(isLogo),
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 24),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: AppColors.primarySoft,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: AppColors.primary.withOpacity(0.3), style: BorderStyle.none),
           ),

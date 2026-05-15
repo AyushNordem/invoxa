@@ -1,9 +1,14 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:invoxa/app/presentation/widgets/log_print_condition.dart';
+
+import '../../../../core/utils/app_snackbar.dart';
 
 class SignUpController extends GetxController {
   final formKey = GlobalKey<FormState>();
-  
+
   final fullNameController = TextEditingController();
   final businessNameController = TextEditingController();
   final mobileController = TextEditingController();
@@ -14,6 +19,7 @@ class SignUpController extends GetxController {
   final isPasswordVisible = false.obs;
   final isConfirmPasswordVisible = false.obs;
   final isLoading = false.obs;
+  final isCheckTerm = false.obs;
 
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
@@ -53,17 +59,36 @@ class SignUpController extends GetxController {
   }
 
   Future<void> signUp() async {
-    if (formKey.currentState!.validate()) {
+    if (formKey.currentState!.validate() && isCheckTerm.value) {
       isLoading.value = true;
       try {
-        // TODO: Implement Firebase Registration Auth
-        await Future.delayed(const Duration(seconds: 2));
-        Get.snackbar('Success', 'Account created successfully!', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
+        UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: emailController.text.trim(), password: passwordController.text);
+        final uid = userCredential.user?.uid;
+        if (uid == null) {
+          throw Exception("User UID is null");
+        }
+        await FirebaseFirestore.instance.collection('users').doc(userCredential.user?.uid ?? "").set({
+          'uid': userCredential.user?.uid ?? "",
+          'fullName': fullNameController.text.trim(),
+          'businessName': businessNameController.text.trim(),
+          'mobile': mobileController.text.trim(),
+          'email': emailController.text.trim(),
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+
+        AppSnackbar.showSuccess(title: 'Success', message: 'Account created successfully!');
+        Get.back();
+      } on FirebaseAuthException catch (e) {
+        logPrint(e);
+        AppSnackbar.showError(title: 'Error', message: e.message ?? 'An error occurred');
       } catch (e) {
-        Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+        logPrint(e);
+        AppSnackbar.showError(title: 'Error', message: e.toString());
       } finally {
         isLoading.value = false;
       }
+    } else if (isCheckTerm.isFalse) {
+      AppSnackbar.showError(title: 'Error', message: "Please accept the terms and conditions");
     }
   }
 

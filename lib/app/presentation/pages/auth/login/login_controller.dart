@@ -1,5 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:invoxa/app/presentation/widgets/log_print_condition.dart';
+import 'package:invoxa/app/routes/app_pages.dart';
+
+import '../../../../core/utils/app_snackbar.dart';
 
 class LoginController extends GetxController {
   final formKey = GlobalKey<FormState>();
@@ -30,11 +35,15 @@ class LoginController extends GetxController {
     if (formKey.currentState!.validate()) {
       isLoading.value = true;
       try {
-        // TODO: Implement Firebase Email/Password Auth
-        await Future.delayed(const Duration(seconds: 2));
-        Get.snackbar('Success', 'Logged in successfully', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.green, colorText: Colors.white);
+        await FirebaseAuth.instance.signInWithEmailAndPassword(email: emailController.text.trim(), password: passwordController.text);
+        AppSnackbar.showSuccess(title: 'Success', message: 'Logged in successfully');
+        Get.offAllNamed(Routes.BUSINESS_SETUP);
+      } on FirebaseAuthException catch (e) {
+        logPrint(e);
+        AppSnackbar.showError(title: 'Error', message: e.message ?? 'An error occurred');
       } catch (e) {
-        Get.snackbar('Error', e.toString(), snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+        logPrint(e);
+        AppSnackbar.showError(title: 'Error', message: e.toString());
       } finally {
         isLoading.value = false;
       }

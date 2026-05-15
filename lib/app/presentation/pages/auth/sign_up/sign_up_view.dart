@@ -95,22 +95,24 @@ class SignUpView extends GetView<SignUpController> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: AppSpacing.md),
 
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: Checkbox(
-                          value: false, // For UI purpose, it can be bound to controller
-                          onChanged: (val) {},
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                          side: const BorderSide(color: AppColors.borderGrey),
+                      Obx(
+                        () => SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Checkbox(
+                            value: controller.isCheckTerm.value, // For UI purpose, it can be bound to controller
+                            onChanged: (val) => controller.isCheckTerm.value = val ?? false,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                            side: const BorderSide(color: AppColors.primaryBorder),
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: RichText(
                           text: TextSpan(
@@ -121,7 +123,7 @@ class SignUpView extends GetView<SignUpController> {
                                 text: 'Terms of Service',
                                 style: StyleResource.instance.styleSemiBold(fontSize: 14, color: AppColors.black).copyWith(decoration: TextDecoration.underline),
                               ),
-                              const TextSpan(text: ' and\n'),
+                              const TextSpan(text: ' and '),
                               TextSpan(
                                 text: 'Privacy Policy',
                                 style: StyleResource.instance.styleSemiBold(fontSize: 14, color: AppColors.black).copyWith(decoration: TextDecoration.underline),
@@ -133,7 +135,7 @@ class SignUpView extends GetView<SignUpController> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.xxl),
+                  const SizedBox(height: AppSpacing.lg),
 
                   Obx(() => GradientButton(text: 'Create Account →', isLoading: controller.isLoading.value, onPressed: controller.signUp)),
                   const SizedBox(height: AppSpacing.xxl),

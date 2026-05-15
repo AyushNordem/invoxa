@@ -28,6 +28,7 @@ class CustomTextField extends StatelessWidget {
           obscureText: isPassword,
           keyboardType: keyboardType,
           validator: validator,
+          obscuringCharacter: '●',
           style: StyleResource.instance.styleRegular(color: AppColors.black),
           decoration: InputDecoration(
             hintText: hint,
@@ -35,6 +36,7 @@ class CustomTextField extends StatelessWidget {
             prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppColors.primary) : null,
             suffixIcon: suffixIcon,
             filled: true,
+
             fillColor: AppColors.white,
             border: OutlineInputBorder(
               borderRadius: AppRadius.input,

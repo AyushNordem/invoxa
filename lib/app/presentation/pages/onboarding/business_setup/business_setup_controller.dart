@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import '../../../../core/utils/app_snackbar.dart';
 import 'package:image_picker/image_picker.dart';
 
 class BusinessSetupController extends GetxController {
@@ -54,7 +55,7 @@ class BusinessSetupController extends GetxController {
         }
       }
     } catch (e) {
-      Get.snackbar('Error', 'Failed to pick image');
+      AppSnackbar.showError(title: 'Error', message: 'Failed to pick image');
     }
   }
 
@@ -71,7 +72,7 @@ class BusinessSetupController extends GetxController {
     if (canProceed) {
       currentStep.value++;
     } else {
-      Get.snackbar('Validation', 'Please complete the required fields correctly.', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackbar.showError(title: 'Validation', message: 'Please complete the required fields correctly.');
     }
   }
 
@@ -88,15 +89,15 @@ class BusinessSetupController extends GetxController {
         // TODO: Upload images to Firebase Storage
         // TODO: Save business data to Firestore
         await Future.delayed(const Duration(seconds: 2));
-        Get.snackbar('Success', 'Business setup completed!', backgroundColor: Colors.green, colorText: Colors.white);
+        AppSnackbar.showSuccess(title: 'Success', message: 'Business setup completed!');
         Get.offAllNamed('/dashboard'); // placeholder route
       } catch (e) {
-        Get.snackbar('Error', e.toString(), backgroundColor: Colors.red, colorText: Colors.white);
+        AppSnackbar.showError(title: 'Error', message: e.toString());
       } finally {
         isLoading.value = false;
       }
     } else {
-      Get.snackbar('Validation', 'Please complete the required fields correctly.', snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red, colorText: Colors.white);
+      AppSnackbar.showError(title: 'Validation', message: 'Please complete the required fields correctly.');
     }
   }
 

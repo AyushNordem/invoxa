@@ -25,7 +25,7 @@ class BaseView extends StatelessWidget {
           appBar ??
           (title != null
               ? AppBar(
-                  title: Text(title ?? "", style: StyleResource.instance.styleMedium(fontSize: 16, color: AppColors.black)),
+                  title: Text(title ?? "", style: StyleResource.instance.styleMedium(fontSize: 18, color: AppColors.black)),
                   centerTitle: false,
                   backgroundColor: Colors.transparent,
                   elevation: 0,
