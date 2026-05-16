@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:invoxa/app/presentation/widgets/base_view.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_sizes.dart';
@@ -12,15 +13,12 @@ class ProfileScreen extends GetView<ProfileController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SingleChildScrollView(
+    return BaseView(
+      child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: AppSpacing.screenPadding,
         child: Column(
           children: [
-            const SizedBox(height: AppSpacing.md),
-            _buildAppBar(),
             const SizedBox(height: AppSpacing.xl),
             _buildHeader(),
             const SizedBox(height: 24),
@@ -33,17 +31,6 @@ class ProfileScreen extends GetView<ProfileController> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildAppBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const CircleAvatar(radius: 20, backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=alex')),
-        Text('Invoxa', style: StyleResource.instance.styleBold(fontSize: 20, color: AppColors.primary)),
-        const Icon(Icons.notifications_none_outlined, color: AppColors.primary, size: 24),
-      ],
     );
   }
 

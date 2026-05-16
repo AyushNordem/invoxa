@@ -2,42 +2,43 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
-
-import '../../../../../../core/services/cloudinary_service.dart';
 import '../../../../../../core/utils/app_constants.dart';
 import '../../../../../../core/utils/app_snackbar.dart';
 import '../profile_controller.dart';
 
 class EditProfileController extends GetxController {
   final fullNameController = TextEditingController();
-  final emailController = TextEditingController(); // Email usually read-only in Firebase unless complex flow
-
-  final profileImagePath = ''.obs;
+  final businessNameController = TextEditingController();
+  final mobileController = TextEditingController();
+  final emailController = TextEditingController(); 
+  
   final isLoading = false.obs;
-  final ImagePicker _picker = ImagePicker();
 
   @override
   void onInit() {
     super.onInit();
-    final profileController = Get.find<ProfileController>();
-    fullNameController.text = profileController.userName.value;
-
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      emailController.text = user.email ?? '';
-      profileImagePath.value = user.photoURL ?? '';
-    }
+    fetchUserData();
   }
 
-  Future<void> pickImage() async {
+  Future<void> fetchUserData() async {
     try {
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        profileImagePath.value = image.path;
+      isLoading.value = true;
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        emailController.text = user.email ?? '';
+
+        final doc = await FirebaseFirestore.instance.collection(AppConstants.collectionUsers).doc(user.uid).get();
+        if (doc.exists) {
+          final data = doc.data()!;
+          fullNameController.text = data['fullName'] ?? '';
+          mobileController.text = data['mobile'] ?? '';
+          businessNameController.text = data['businessName'] ?? '';
+        }
       }
     } catch (e) {
-      AppSnackbar.showError(title: 'Error', message: 'Failed to pick image');
+      print('Error fetching edit profile data: $e');
+    } finally {
+      isLoading.value = false;
     }
   }
 
@@ -51,26 +52,22 @@ class EditProfileController extends GetxController {
       isLoading.value = true;
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        String? imageUrl = profileImagePath.value;
-
-        // Upload to Cloudinary if it's a local file
-        if (profileImagePath.value.isNotEmpty && !profileImagePath.value.startsWith('http')) {
-          imageUrl = await CloudinaryService.uploadImage(profileImagePath.value);
-        }
-
-        // Update Firebase Auth profile
+        // Update Firebase Auth display name
         await user.updateDisplayName(fullNameController.text.trim());
-        if (imageUrl != null) {
-          await user.updatePhotoURL(imageUrl);
-        }
 
         // Update Firestore user document
-        await FirebaseFirestore.instance.collection(AppConstants.collectionUsers).doc(user.uid).update({'fullName': fullNameController.text.trim(), 'profileImageUrl': imageUrl, 'updatedAt': FieldValue.serverTimestamp()});
+        await FirebaseFirestore.instance.collection(AppConstants.collectionUsers).doc(user.uid).update({
+          'fullName': fullNameController.text.trim(),
+          'businessName': businessNameController.text.trim(),
+          'mobile': mobileController.text.trim(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
 
         // Update local ProfileController state
         final profileController = Get.find<ProfileController>();
         profileController.userName.value = fullNameController.text.trim();
-
+        profileController.businessName.value = businessNameController.text.trim();
+        
         AppSnackbar.showSuccess(title: 'Success', message: 'Profile updated successfully!');
         Get.back();
       }
@@ -84,6 +81,8 @@ class EditProfileController extends GetxController {
   @override
   void onClose() {
     fullNameController.dispose();
+    businessNameController.dispose();
+    mobileController.dispose();
     emailController.dispose();
     super.onClose();
   }
