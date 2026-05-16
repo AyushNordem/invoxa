@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:invoxa/app/presentation/widgets/custom_text_field.dart';
+import 'package:invoxa/app/presentation/widgets/base_view.dart';
 
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/style_resource.dart';
-import '../../../../../../core/utils/app_snackbar.dart';
 import '../../../../../../data/models/customer_model.dart';
 import '../../../../../../data/models/invoice_model.dart';
 import '../../../../../../routes/app_pages.dart';
@@ -16,90 +15,70 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      appBar: AppBar(
-        backgroundColor: AppColors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.primary, size: 20),
-          onPressed: () => Get.back(),
-        ),
-        title: Text('New Invoice', style: StyleResource.instance.styleBold(fontSize: 20, color: AppColors.primary)),
-        centerTitle: false,
-      ),
-      body: Obx(
+    return BaseView(
+      title: 'Create Invoice',
+      bottomNavigationBar: _buildMagicFooter(),
+      child: Obx(
         () => controller.isLoading.value
             ? const Center(child: CircularProgressIndicator())
-            : SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    _buildHeaderSection(),
-                    const SizedBox(height: 24),
-                    _buildSellerCard(),
-                    const SizedBox(height: 24),
-                    _buildBankDetailsCard(),
-                    const SizedBox(height: 24),
-                    _buildBuyerSection(),
-                    const SizedBox(height: 24),
-                    _buildItemsSection(),
-                    const SizedBox(height: 24),
-                    _buildTaxToggles(),
-                    const SizedBox(height: 24),
-                    _buildTotalsSection(),
-                    const SizedBox(height: 32),
-                    _buildActionButtons(),
-                    const SizedBox(height: 40),
-                  ],
-                ),
+            : ListView(
+                padding: const EdgeInsets.all(20.0),
+                children: [
+                  _buildMagicHeader(),
+                  const SizedBox(height: 24),
+                  _buildCombinedSellerBankCard(),
+                  const SizedBox(height: 24),
+                  _buildBuyerSection(),
+                  const SizedBox(height: 32),
+                  _buildItemsSection(),
+                  const SizedBox(height: 32),
+                  _buildTaxToggles(),
+                  const SizedBox(height: 32),
+                  _buildMagicTotalsSection(),
+                  const SizedBox(height: 100),
+                ],
               ),
       ),
     );
   }
 
-  Widget _buildHeaderSection() {
+  Widget _buildMagicHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.03), blurRadius: 10)],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, 10))],
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(16)),
+            child: const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 28),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Invoice Number', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1)),
+                const SizedBox(height: 4),
+                Text(controller.invoiceNumber.value, style: StyleResource.instance.styleBold(fontSize: 18, color: AppColors.secondary)),
+              ],
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Expanded(child: _buildInputLabel('Invoice Number', controller.invoiceNumberController, isEnabled: false)),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Invoice Date', style: StyleResource.instance.styleMedium(fontSize: 14, color: AppColors.black)),
-                    const SizedBox(height: 8),
-                    InkWell(
-                      onTap: () => _selectDate(Get.context!),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.borderGrey.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppColors.primarySoft),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(DateFormat('dd MMM yyyy').format(controller.invoiceDate.value), style: StyleResource.instance.styleSemiBold(fontSize: 14, color: AppColors.secondary)),
-                            const Icon(Icons.calendar_month_outlined, size: 18, color: AppColors.primary),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
+              Text('Date', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1)),
+              const SizedBox(height: 4),
+              GestureDetector(
+                onTap: () => _selectDate(Get.context!),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.05), borderRadius: BorderRadius.circular(8)),
+                  child: Text(DateFormat('dd MMM').format(controller.invoiceDate.value), style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.primary)),
                 ),
               ),
             ],
@@ -109,104 +88,145 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
     );
   }
 
-  Widget _buildSellerCard() {
+  Widget _buildCombinedSellerBankCard() {
     final seller = controller.sellerProfile.value;
-    return _buildExpandableCard(
-      title: 'SELLER DETAILS (FROM PROFILE)',
-      icon: Icons.business_center_outlined,
-      child: seller == null
-          ? Text('No business profile found. Please set up in profile.', style: StyleResource.instance.styleMedium(color: Colors.red))
-          : Column(
+    final bank = seller?.bankDetails;
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.02), blurRadius: 15, offset: const Offset(0, 5))],
+        border: Border.all(color: AppColors.primaryBorder),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.05), AppColors.white]),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(seller.businessName ?? 'N/A', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.secondary)),
-                const SizedBox(height: 8),
-                _buildInfoLine(Icons.location_on_outlined, '${seller.address?.street}, ${seller.address?.city}, ${seller.address?.state}'),
-                _buildInfoLine(Icons.email_outlined, seller.email ?? 'N/A'),
-                _buildInfoLine(Icons.phone_outlined, seller.mobile ?? 'N/A'),
-                _buildInfoLine(Icons.description_outlined, 'GST: ${seller.taxSettings?.gstNumber ?? 'N/A'}'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('FROM BUSINESS', style: StyleResource.instance.styleBold(fontSize: 10, color: AppColors.primary).copyWith(letterSpacing: 1.5)),
+                    const Icon(Icons.verified_user_rounded, color: Colors.green, size: 16),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(seller?.businessName ?? 'Setting up...', style: StyleResource.instance.styleBold(fontSize: 20, color: AppColors.secondary)),
+                const SizedBox(height: 12),
+                _buildModernInfoRow(Icons.location_on_rounded, '${seller?.address?.street}, ${seller?.address?.city}'),
+                _buildModernInfoRow(Icons.description_rounded, 'GST: ${seller?.taxSettings?.gstNumber ?? 'N/A'}'),
               ],
             ),
-    );
-  }
-
-  Widget _buildBankDetailsCard() {
-    final bank = controller.sellerProfile.value?.bankDetails;
-    return _buildExpandableCard(
-      title: 'BANK DETAILS',
-      icon: Icons.account_balance_outlined,
-      child: bank == null
-          ? Text('No bank details found.', style: StyleResource.instance.styleMedium(color: AppColors.greyText))
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          const Divider(height: 1, color: AppColors.primaryBorder),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
               children: [
-                Text(bank.bankName ?? 'N/A', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.secondary)),
-                const SizedBox(height: 4),
-                Text('A/C: ${bank.accountNumber ?? 'N/A'}', style: StyleResource.instance.styleMedium(fontSize: 13, color: AppColors.secondary)),
-                Text('IFSC: ${bank.ifsc ?? 'N/A'}', style: StyleResource.instance.styleMedium(fontSize: 13, color: AppColors.secondary)),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(color: AppColors.secondary.withOpacity(0.05), borderRadius: BorderRadius.circular(12)),
+                  child: const Icon(Icons.account_balance_rounded, color: AppColors.secondary, size: 20),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(bank?.bankName ?? 'Bank Not Set', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.secondary)),
+                      Text('A/C: ${bank?.accountNumber ?? '****'} | IFSC: ${bank?.ifsc ?? '****'}', style: StyleResource.instance.styleMedium(fontSize: 12, color: AppColors.greyText)),
+                    ],
+                  ),
+                ),
               ],
             ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildBuyerSection() {
-    return _buildExpandableCard(
-      title: 'BILL TO (BUYER)',
-      icon: Icons.person_pin_outlined,
-      child: Column(
-        children: [
-          Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('BILL TO (BUYER)', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1.5)),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+          ),
+          child: Row(
             children: [
               Expanded(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  decoration: BoxDecoration(color: AppColors.borderGrey.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<CustomerModel>(
-                      hint: Text('Select Existing Customer', style: StyleResource.instance.styleMedium(fontSize: 14, color: AppColors.greyText)),
+                      hint: Text('Select Customer', style: StyleResource.instance.styleMedium(fontSize: 14, color: AppColors.greyText)),
                       value: controller.selectedCustomer.value,
                       isExpanded: true,
-                      items: controller.allCustomers.map((c) {
-                        return DropdownMenuItem(
-                          value: c,
-                          child: Text(c.name ?? '', style: StyleResource.instance.styleSemiBold(fontSize: 14)),
-                        );
-                      }).toList(),
+                      borderRadius: BorderRadius.circular(16),
+                      items: controller.allCustomers
+                          .map(
+                            (c) => DropdownMenuItem(
+                              value: c,
+                              child: Text(c.name ?? '', style: StyleResource.instance.styleSemiBold(fontSize: 14)),
+                            ),
+                          )
+                          .toList(),
                       onChanged: (val) => controller.selectCustomer(val!),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              IconButton(
-                onPressed: () => Get.toNamed(Routes.ADD_CUSTOMER),
-                icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
-                tooltip: 'Add New Customer',
+              GestureDetector(
+                onTap: () => Get.toNamed(Routes.ADD_CUSTOMER),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(14)),
+                  child: const Icon(Icons.person_add_alt_1_rounded, color: AppColors.white, size: 20),
+                ),
               ),
             ],
           ),
-          if (controller.selectedCustomer.value != null) ...[
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: AppColors.primarySoft.withOpacity(0.3), borderRadius: BorderRadius.circular(12)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(controller.selectedCustomer.value!.name ?? '', style: StyleResource.instance.styleBold(fontSize: 15)),
-                      const Icon(Icons.check_circle, color: Colors.green, size: 16),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text('${controller.selectedCustomer.value!.address?.street}, ${controller.selectedCustomer.value!.address?.city}', style: StyleResource.instance.styleMedium(fontSize: 12, color: AppColors.greyText)),
-                  Text('GST: ${controller.selectedCustomer.value!.gstNumber ?? 'N/A'}', style: StyleResource.instance.styleMedium(fontSize: 12, color: AppColors.greyText)),
-                ],
-              ),
-            ),
-          ],
+        ),
+        if (controller.selectedCustomer.value != null) ...[const SizedBox(height: 16), _buildMagicCustomerPreview(controller.selectedCustomer.value!)],
+      ],
+    );
+  }
+
+  Widget _buildMagicCustomerPreview(CustomerModel customer) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [AppColors.primarySoft.withOpacity(0.2), AppColors.white]),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.contact_mail_rounded, size: 16, color: AppColors.primary),
+              const SizedBox(width: 8),
+              Text(customer.contactPerson ?? 'No Contact', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.primary)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(customer.name ?? '', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.secondary)),
+          Text(customer.email ?? '', style: StyleResource.instance.styleMedium(fontSize: 13, color: AppColors.greyText)),
         ],
       ),
     );
@@ -219,32 +239,26 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('ITEMS & SERVICES', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.secondary).copyWith(letterSpacing: 1)),
-            TextButton.icon(
-              onPressed: () => _showAddItemDialog(),
-              icon: const Icon(Icons.add_box_outlined, size: 18),
-              label: Text('Add Item', style: StyleResource.instance.styleBold(fontSize: 13)),
+            Text('ITEMS & SERVICES', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1.5)),
+            GestureDetector(
+              onTap: () => _showMagicItemDialog(),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(12)),
+                child: Row(
+                  children: [
+                    const Icon(Icons.add_rounded, color: AppColors.primary, size: 18),
+                    const SizedBox(width: 4),
+                    Text('ADD ITEM', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.primary)),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 16),
         if (controller.items.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.borderGrey.withOpacity(0.3)),
-            ),
-            child: Column(
-              children: [
-                Icon(Icons.inventory_2_outlined, size: 40, color: AppColors.greyText.withOpacity(0.2)),
-                const SizedBox(height: 12),
-                Text('No items added yet', style: StyleResource.instance.styleMedium(color: AppColors.greyText)),
-              ],
-            ),
-          )
+          _buildEmptyItemsState()
         else
           ListView.builder(
             shrinkWrap: true,
@@ -253,33 +267,35 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
             itemBuilder: (context, index) {
               final item = controller.items[index];
               return Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppColors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.borderGrey.withOpacity(0.3)),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.borderGrey.withOpacity(0.5)),
                 ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(item.name ?? 'Item', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.secondary)),
+                        Expanded(
+                          child: Text(item.name ?? '', style: StyleResource.instance.styleBold(fontSize: 15, color: AppColors.secondary)),
+                        ),
                         IconButton(
                           onPressed: () => controller.removeItem(index),
-                          icon: const Icon(Icons.close, size: 18, color: Colors.redAccent),
+                          icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent, size: 22),
                         ),
                       ],
                     ),
-                    if (item.hsnCode != null) Text('HSN: ${item.hsnCode}', style: StyleResource.instance.styleMedium(fontSize: 11, color: AppColors.greyText)),
                     const SizedBox(height: 8),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('${item.quantity} ${item.unit} x ₹${item.rate}', style: StyleResource.instance.styleMedium(fontSize: 13, color: AppColors.secondary)),
-                        Text('₹${item.amount.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.primary)),
+                        _buildBadge('Qty: ${item.quantity}', AppColors.secondary),
+                        const SizedBox(width: 8),
+                        _buildBadge('₹${item.rate}', AppColors.primary),
+                        const Spacer(),
+                        Text('₹${item.amount.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.secondary)),
                       ],
                     ),
                   ],
@@ -291,49 +307,78 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
     );
   }
 
-  Widget _buildTaxToggles() {
+  Widget _buildEmptyItemsState() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(16)),
+      width: double.infinity,
+      padding: const EdgeInsets.all(40),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.borderGrey.withOpacity(0.5), style: BorderStyle.solid),
+      ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('TAX SETTINGS', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText)),
-          const SizedBox(height: 12),
-          Row(children: [_buildTaxChip('CGST', controller.hasCGST), const SizedBox(width: 8), _buildTaxChip('SGST', controller.hasSGST), const SizedBox(width: 8), _buildTaxChip('IGST', controller.hasIGST)]),
+          Icon(Icons.inventory_2_rounded, size: 48, color: AppColors.greyText.withOpacity(0.1)),
+          const SizedBox(height: 16),
+          Text('Ready to add your first item?', style: StyleResource.instance.styleMedium(color: AppColors.greyText)),
         ],
       ),
     );
   }
 
-  Widget _buildTaxChip(String label, RxBool state) {
-    return ChoiceChip(
-      label: Text(label, style: StyleResource.instance.styleBold(fontSize: 12, color: state.value ? AppColors.white : AppColors.secondary)),
-      selected: state.value,
-      onSelected: (val) => state.value = val,
-      selectedColor: AppColors.primary,
-      backgroundColor: AppColors.borderGrey.withOpacity(0.2),
+  Widget _buildTaxToggles() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(24)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('TAX CONFIGURATION', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1.5)),
+          const SizedBox(height: 20),
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [_buildModernToggle('CGST', controller.hasCGST), _buildModernToggle('SGST', controller.hasSGST), _buildModernToggle('IGST', controller.hasIGST)]),
+        ],
+      ),
     );
   }
 
-  Widget _buildTotalsSection() {
+  Widget _buildModernToggle(String label, RxBool state) {
+    return GestureDetector(
+      onTap: () => state.value = !state.value,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: state.value ? AppColors.primary : AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: state.value ? AppColors.primary : AppColors.borderGrey),
+        ),
+        child: Text(label, style: StyleResource.instance.styleBold(fontSize: 13, color: state.value ? AppColors.white : AppColors.secondary)),
+      ),
+    );
+  }
+
+  Widget _buildMagicTotalsSection() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: AppColors.secondary, borderRadius: BorderRadius.circular(24)),
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [AppColors.secondary, Color(0xFF1A1F26)]),
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [BoxShadow(color: AppColors.secondary.withOpacity(0.3), blurRadius: 25, offset: const Offset(0, 15))],
+      ),
       child: Column(
         children: [
-          _buildSummaryRow('Sub Total', '₹${controller.subTotal.toStringAsFixed(2)}', Colors.white70),
-          _buildSummaryRow('Discount', '-₹${controller.discountTotal.toStringAsFixed(2)}', Colors.redAccent.withOpacity(0.8)),
-          _buildSummaryRow('GST (${controller.taxPercentage.value}%)', '₹${controller.taxTotal.toStringAsFixed(2)}', Colors.white70),
+          _buildSummaryLine('Sub Total', '₹${controller.subTotal.toStringAsFixed(2)}'),
+          _buildSummaryLine('Discount', '-₹${controller.discountTotal.toStringAsFixed(2)}', valueColor: Colors.redAccent),
+          _buildSummaryLine('GST (${controller.taxPercentage.value}%)', '₹${controller.taxTotal.toStringAsFixed(2)}'),
           const Padding(
-            padding: EdgeInsets.symmetric(vertical: 12),
+            padding: EdgeInsets.symmetric(vertical: 20),
             child: Divider(color: Colors.white12),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Grand Total', style: StyleResource.instance.styleBold(fontSize: 18, color: Colors.white)),
-              Text('₹${controller.grandTotal.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 22, color: AppColors.primary)),
+              Text('Grand Total', style: StyleResource.instance.styleBold(fontSize: 20, color: Colors.white)),
+              Text('₹${controller.grandTotal.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 28, color: AppColors.primary)),
             ],
           ),
         ],
@@ -341,129 +386,142 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, Color color) {
+  Widget _buildSummaryLine(String label, String value, {Color valueColor = Colors.white}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
+      padding: const EdgeInsets.only(bottom: 12.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: StyleResource.instance.styleMedium(fontSize: 14, color: color)),
-          Text(value, style: StyleResource.instance.styleSemiBold(fontSize: 14, color: Colors.white)),
+          Text(label, style: StyleResource.instance.styleMedium(fontSize: 15, color: Colors.white60)),
+          Text(value, style: StyleResource.instance.styleBold(fontSize: 16, color: valueColor)),
         ],
       ),
     );
   }
 
-  Widget _buildActionButtons() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () => controller.saveInvoice(),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        ),
-        child: Text('Generate & Save Invoice', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.white)),
-      ),
-    );
-  }
-
-  // Helper Widgets
-  Widget _buildExpandableCard({required String title, required IconData icon, required Widget child}) {
+  Widget _buildMagicFooter() {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.borderGrey.withOpacity(0.3)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -10))],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(title, style: StyleResource.instance.styleBold(fontSize: 11, color: AppColors.greyText).copyWith(letterSpacing: 0.5)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          child,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoLine(IconData icon, String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6.0),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: AppColors.greyText.withOpacity(0.6)),
-          const SizedBox(width: 8),
           Expanded(
-            child: Text(text, style: StyleResource.instance.styleMedium(fontSize: 13, color: AppColors.secondary.withOpacity(0.8))),
+            child: OutlinedButton(
+              onPressed: () => Get.back(),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: Text('DRAFT', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.secondary)),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 2,
+            child: ElevatedButton(
+              onPressed: () => controller.saveInvoice(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 8,
+                shadowColor: AppColors.primary.withOpacity(0.5),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('SAVE INVOICE', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.white)),
+                  const SizedBox(width: 12),
+                  const Icon(Icons.auto_awesome_rounded, color: AppColors.white, size: 20),
+                ],
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildInputLabel(String label, TextEditingController ctrl, {bool isEnabled = true}) {
-    return CustomTextField(label: label, hint: "Enter Invoice Number", controller: ctrl);
+  // Helpers
+  Widget _buildModernInfoRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          Icon(icon, size: 14, color: AppColors.primary.withOpacity(0.5)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(text, style: StyleResource.instance.styleMedium(fontSize: 13, color: AppColors.secondary.withOpacity(0.7))),
+          ),
+        ],
+      ),
+    );
   }
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(context: context, initialDate: controller.invoiceDate.value, firstDate: DateTime(2020), lastDate: DateTime(2101));
-    if (picked != null) controller.invoiceDate.value = picked;
+  Widget _buildBadge(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+      child: Text(text, style: StyleResource.instance.styleBold(fontSize: 11, color: color)),
+    );
   }
 
-  void _showAddItemDialog() {
+  void _showMagicItemDialog() {
     final nameCtrl = TextEditingController();
     final rateCtrl = TextEditingController();
     final qtyCtrl = TextEditingController(text: '1');
     final discountCtrl = TextEditingController(text: '0');
     final hsnCtrl = TextEditingController();
-    final unit = 'PCS'.obs;
 
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(32),
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+        ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Add Product/Service', style: StyleResource.instance.styleBold(fontSize: 20)),
-              const SizedBox(height: 20),
-              _buildDialogField('Item Name*', nameCtrl),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(child: _buildDialogField('Rate/Price*', rateCtrl, type: TextInputType.number)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildDialogField('Quantity*', qtyCtrl, type: TextInputType.number)),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(child: _buildDialogField('Discount %', discountCtrl, type: TextInputType.number)),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildDialogField('HSN/SAC', hsnCtrl)),
-                ],
+              Center(
+                child: Container(
+                  width: 50,
+                  height: 5,
+                  decoration: BoxDecoration(color: AppColors.borderGrey, borderRadius: BorderRadius.circular(10)),
+                ),
               ),
               const SizedBox(height: 24),
+              Text('ADD PRODUCT', style: StyleResource.instance.styleBold(fontSize: 24, color: AppColors.secondary)),
+              const SizedBox(height: 24),
+              _buildMagicInput('Product Name', nameCtrl, Icons.shopping_bag_outlined),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(child: _buildMagicInput('Rate', rateCtrl, Icons.payments_outlined, type: TextInputType.number)),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildMagicInput('Qty', qtyCtrl, Icons.add_box_outlined, type: TextInputType.number)),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(child: _buildMagicInput('Disc %', discountCtrl, Icons.percent_rounded, type: TextInputType.number)),
+                  const SizedBox(width: 16),
+                  Expanded(child: _buildMagicInput('HSN Code', hsnCtrl, Icons.qr_code_rounded)),
+                ],
+              ),
+              const SizedBox(height: 32),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (nameCtrl.text.isEmpty || rateCtrl.text.isEmpty) {
-                      AppSnackbar.showError(title: 'Error', message: 'Please fill required fields');
-                      return;
-                    }
+                    if (nameCtrl.text.isEmpty || rateCtrl.text.isEmpty) return;
                     final rate = double.tryParse(rateCtrl.text) ?? 0.0;
                     final qty = double.tryParse(qtyCtrl.text) ?? 1.0;
                     final disc = double.tryParse(discountCtrl.text) ?? 0.0;
@@ -474,35 +532,45 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
-                  child: const Text('Add to Invoice', style: TextStyle(color: Colors.white)),
+                  child: Text('ADD TO LIST', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.white)),
                 ),
               ),
             ],
           ),
         ),
       ),
+      isScrollControlled: true,
     );
   }
 
-  Widget _buildDialogField(String label, TextEditingController ctrl, {TextInputType type = TextInputType.text}) {
+  Widget _buildMagicInput(String label, TextEditingController ctrl, IconData icon, {TextInputType type = TextInputType.text}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText)),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         TextField(
           controller: ctrl,
           keyboardType: type,
+          style: StyleResource.instance.styleSemiBold(fontSize: 15),
           decoration: InputDecoration(
             isDense: true,
+            prefixIcon: Icon(icon, size: 18, color: AppColors.primary),
             filled: true,
-            fillColor: AppColors.borderGrey.withOpacity(0.1),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+            fillColor: AppColors.primarySoft.withOpacity(0.3),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(context: context, initialDate: controller.invoiceDate.value, firstDate: DateTime(2020), lastDate: DateTime(2101));
+    if (picked != null) controller.invoiceDate.value = picked;
   }
 }
