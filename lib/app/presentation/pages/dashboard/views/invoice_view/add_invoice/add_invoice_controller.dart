@@ -1,46 +1,174 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../../core/utils/app_constants.dart';
+import '../../../../../../core/utils/app_snackbar.dart';
+import '../../../../../../data/models/business_model.dart';
+import '../../../../../../data/models/customer_model.dart';
+import '../../../../../../data/models/invoice_model.dart';
+import '../../../../../../core/utils/invoice_number_generator.dart';
+
 class AddInvoiceController extends GetxController {
-  final invoiceNumberController = TextEditingController(text: 'INV-2024-005');
-  final invoiceDateController = TextEditingController();
-  final dueDateController = TextEditingController();
-  final paymentMethod = 'Bank Transfer'.obs;
-  final placeOfSupply = ''.obs;
-  final isExistingCustomer = true.obs;
+  final isLoading = false.obs;
 
-  final items = <Map<String, dynamic>>[
-    {
-      'title': 'UI/UX Design Package',
-      'description': 'Professional dashboard & mobile app design',
-      'qty': '1 / Monthly',
-      'price': 2400.0,
-    },
-    {
-      'title': 'Brand Identity Audit',
-      'description': 'Visual language and accessibility review',
-      'qty': '1 / Flat',
-      'price': 850.0,
-    },
-  ].obs;
+  // Seller (Business) Profile
+  final sellerProfile = Rxn<BusinessModel>();
 
-  double get subtotal => items.fold(0, (sum, item) => sum + (item['price'] as double));
-  double get tax => subtotal * 0.18;
-  double get total => subtotal + tax;
+  // Buyer (Customer)
+  final selectedCustomer = Rxn<CustomerModel>();
+  final allCustomers = <CustomerModel>[].obs;
+
+  // Invoice Header
+  final invoiceNumber = ''.obs;
+  final invoiceDate = DateTime.now().obs;
+  final dueDate = DateTime.now().add(const Duration(days: 7)).obs;
+
+  // Items
+  final items = <InvoiceItem>[].obs;
+
+  // Tax Toggles
+  final hasCGST = true.obs;
+  final hasSGST = true.obs;
+  final hasIGST = false.obs;
+  final taxPercentage = 18.0.obs; // Default GST 18%
+
+  // Controllers for header
+  final invoiceNumberController = TextEditingController();
+  final notesController = TextEditingController();
 
   @override
-  void onClose() {
-    invoiceNumberController.dispose();
-    invoiceDateController.dispose();
-    dueDateController.dispose();
-    super.onClose();
+  void onInit() {
+    super.onInit();
+    fetchInitialData();
+  }
+
+  Future<void> fetchInitialData() async {
+    try {
+      isLoading.value = true;
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      // 1. Fetch Seller Details
+      final bizDoc = await FirebaseFirestore.instance.collection(AppConstants.collectionBusinesses).doc(user.uid).get();
+      if (bizDoc.exists) {
+        sellerProfile.value = BusinessModel.fromMap(bizDoc.data()!);
+      }
+
+      // 2. Fetch All Customers for Buyer selection
+      final custSnapshot = await FirebaseFirestore.instance.collection(AppConstants.collectionCustomers).where('userId', isEqualTo: user.uid).get();
+      allCustomers.value = custSnapshot.docs.map((doc) => CustomerModel.fromMap(doc.data(), id: doc.id)).toList();
+
+      // 3. Generate Invoice Number
+      await generateInvoiceNumber();
+    } catch (e) {
+      AppSnackbar.showError(title: 'Error', message: 'Failed to load profile data');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> generateInvoiceNumber() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final snapshot = await FirebaseFirestore.instance.collection('invoices').where('userId', isEqualTo: user.uid).get();
+
+    int nextNum = 1;
+    if (snapshot.docs.isNotEmpty) {
+      int maxSeq = 0;
+      for (var doc in snapshot.docs) {
+        final invNum = doc.data()['invoiceNumber']?.toString() ?? '';
+        final parts = invNum.split('-');
+        if (parts.length >= 3) {
+          final seq = int.tryParse(parts.last) ?? 0;
+          if (seq > maxSeq) maxSeq = seq;
+        }
+      }
+      nextNum = maxSeq + 1;
+    }
+
+    invoiceNumber.value = InvoiceNumberGenerator.generate(sequenceNumber: nextNum);
+    invoiceNumberController.text = invoiceNumber.value;
+  }
+
+  // Calculation Logic
+  double get subTotal => items.fold(0, (sum, item) => sum + item.amount);
+  double get discountTotal => items.fold(0, (sum, item) => sum + (item.rate * item.quantity * (item.discount / 100)));
+
+  double get taxTotal {
+    double totalTax = 0;
+    if (hasCGST.value || hasSGST.value || hasIGST.value) {
+      totalTax = (subTotal - discountTotal) * (taxPercentage.value / 100);
+    }
+    return totalTax;
+  }
+
+  double get grandTotal => (subTotal - discountTotal) + taxTotal;
+
+  void addItem(InvoiceItem item) {
+    items.add(item);
   }
 
   void removeItem(int index) {
     items.removeAt(index);
   }
 
-  void addItem() {
-    // Placeholder for adding item logic
+  void selectCustomer(CustomerModel customer) {
+    selectedCustomer.value = customer;
+  }
+
+  Future<void> saveInvoice() async {
+    if (selectedCustomer.value == null) {
+      AppSnackbar.showError(title: 'Required', message: 'Please select a customer');
+      return;
+    }
+    if (items.isEmpty) {
+      AppSnackbar.showError(title: 'Required', message: 'Please add at least one item');
+      return;
+    }
+
+    try {
+      isLoading.value = true;
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) return;
+
+      final invoice = InvoiceModel(
+        userId: user.uid,
+        invoiceNumber: invoiceNumberController.text,
+        date: invoiceDate.value,
+        dueDate: dueDate.value,
+        status: 'Pending',
+        sellerDetails: sellerProfile.value,
+        buyerDetails: selectedCustomer.value,
+        items: items,
+        subTotal: subTotal,
+        discountTotal: discountTotal,
+        taxTotal: taxTotal,
+        grandTotal: grandTotal,
+        hasCGST: hasCGST.value,
+        hasSGST: hasSGST.value,
+        hasIGST: hasIGST.value,
+        taxPercentage: taxPercentage.value,
+        notes: notesController.text,
+        createdAt: DateTime.now(),
+      );
+
+      await FirebaseFirestore.instance.collection('invoices').add(invoice.toMap());
+      AppSnackbar.showSuccess(title: 'Success', message: 'Invoice generated successfully!');
+      Get.back();
+    } catch (e) {
+      AppSnackbar.showError(title: 'Error', message: 'Failed to save invoice: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  @override
+  void onClose() {
+    invoiceNumberController.dispose();
+    notesController.dispose();
+    super.onClose();
   }
 }

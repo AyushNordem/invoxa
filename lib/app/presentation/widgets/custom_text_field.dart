@@ -22,7 +22,7 @@ class CustomTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: StyleResource.instance.styleSemiBold(fontSize: 14, color: AppColors.black)),
+        Text(label, style: StyleResource.instance.styleMedium(fontSize: 14, color: AppColors.black)),
         const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: controller,
@@ -38,15 +38,14 @@ class CustomTextField extends StatelessWidget {
             prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppColors.primary) : null,
             suffixIcon: suffixIcon,
             filled: true,
-
             fillColor: AppColors.white,
             border: OutlineInputBorder(
               borderRadius: AppRadius.input,
-              borderSide: const BorderSide(color: AppColors.primaryBorder),
+              borderSide: const BorderSide(color: AppColors.primarySoft),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: AppRadius.input,
-              borderSide: const BorderSide(color: AppColors.primaryBorder),
+              borderSide: const BorderSide(color: AppColors.primarySoft),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: AppRadius.input,
