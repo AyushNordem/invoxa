@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:invoxa/app/core/theme/app_sizes.dart';
 import 'package:invoxa/app/presentation/widgets/base_view.dart';
 
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/style_resource.dart';
+import '../../../../../../core/utils/app_snackbar.dart' show AppSnackbar;
 import '../../../../../../data/models/customer_model.dart';
 import '../../../../../../data/models/invoice_model.dart';
 import '../../../../../../routes/app_pages.dart';
@@ -506,49 +508,68 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
 
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
         decoration: const BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
         ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 50,
-                  height: 5,
-                  decoration: BoxDecoration(color: AppColors.borderGrey, borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text('ADD PRODUCT', style: StyleResource.instance.styleBold(fontSize: 24, color: AppColors.secondary)),
-              const SizedBox(height: 24),
-              _buildMagicInput('Product Name', nameCtrl, Icons.shopping_bag_outlined),
-              const SizedBox(height: 16),
               Row(
                 children: [
-                  Expanded(child: _buildMagicInput('Rate', rateCtrl, Icons.payments_outlined, type: TextInputType.number)),
-                  const SizedBox(width: 16),
-                  Expanded(child: _buildMagicInput('Qty', qtyCtrl, Icons.add_box_outlined, type: TextInputType.number)),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.add_shopping_cart_rounded, color: AppColors.primary, size: 22),
+                        const SizedBox(width: 12),
+                        Text('ADD PRODUCT', style: StyleResource.instance.styleBold(fontSize: 18, color: AppColors.secondary)),
+                      ],
+                    ),
+                  ),
+                  IconButton(onPressed: () => Get.back(), icon: Icon(Icons.clear)),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
+              _buildMagicInput('Product Name', nameCtrl, Icons.shopping_bag_outlined, hint: 'e.g. Website Development'),
+              const SizedBox(height: AppSpacing.md),
               Row(
                 children: [
-                  Expanded(child: _buildMagicInput('Disc %', discountCtrl, Icons.percent_rounded, type: TextInputType.number)),
-                  const SizedBox(width: 16),
-                  Expanded(child: _buildMagicInput('HSN Code', hsnCtrl, Icons.qr_code_rounded)),
+                  Expanded(
+                    child: _buildMagicInput('Rate/Price', rateCtrl, Icons.payments_outlined, type: TextInputType.number, hint: '0.00'),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: _buildMagicInput('Quantity', qtyCtrl, Icons.add_box_outlined, type: TextInputType.number, hint: '1'),
+                  ),
                 ],
               ),
-              const SizedBox(height: 32),
-              SizedBox(
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildMagicInput('Discount %', discountCtrl, Icons.percent_rounded, type: TextInputType.number, hint: '0'),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(child: _buildMagicInput('HSN Code', hsnCtrl, Icons.qr_code_rounded, hint: '9983')),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Container(
                 width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(15),
+                  gradient: const LinearGradient(colors: [AppColors.secondary, AppColors.primary]),
+                  boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
+                ),
                 child: ElevatedButton(
                   onPressed: () {
-                    if (nameCtrl.text.isEmpty || rateCtrl.text.isEmpty) return;
+                    if (nameCtrl.text.isEmpty || rateCtrl.text.isEmpty) {
+                      AppSnackbar.showError(title: 'Required', message: 'Enter name and rate');
+                      return;
+                    }
                     final rate = double.tryParse(rateCtrl.text) ?? 0.0;
                     final qty = double.tryParse(qtyCtrl.text) ?? 1.0;
                     final disc = double.tryParse(discountCtrl.text) ?? 0.0;
@@ -558,13 +579,15 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                     Get.back();
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
                     padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                   ),
-                  child: Text('ADD TO LIST', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.white)),
+                  child: Text('ADD TO INVOICE', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.white)),
                 ),
               ),
+              const SizedBox(height: 16),
             ],
           ),
         ),
@@ -573,11 +596,11 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
     );
   }
 
-  Widget _buildMagicInput(String label, TextEditingController ctrl, IconData icon, {TextInputType type = TextInputType.text}) {
+  Widget _buildMagicInput(String label, TextEditingController ctrl, IconData icon, {TextInputType type = TextInputType.text, String? hint}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText)),
+        Text(label, style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 0.5)),
         const SizedBox(height: 8),
         TextField(
           controller: ctrl,
@@ -585,6 +608,8 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
           style: StyleResource.instance.styleSemiBold(fontSize: 15),
           decoration: InputDecoration(
             isDense: true,
+            hintText: hint,
+            hintStyle: StyleResource.instance.styleMedium(fontSize: 14, color: AppColors.greyText.withOpacity(0.4)),
             prefixIcon: Icon(icon, size: 18, color: AppColors.primary),
             filled: true,
             fillColor: AppColors.primarySoft.withOpacity(0.3),
