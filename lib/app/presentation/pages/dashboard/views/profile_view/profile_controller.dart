@@ -6,6 +6,8 @@ import 'package:get/get.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/style_resource.dart';
 import '../../../../../core/utils/app_constants.dart';
+import '../../../../../data/models/business_model.dart';
+import '../../../../../data/models/user_model.dart';
 
 class ProfileController extends GetxController {
   final userName = 'User'.obs;
@@ -30,38 +32,33 @@ class ProfileController extends GetxController {
         // Fetch User basic info
         final userDoc = await FirebaseFirestore.instance.collection(AppConstants.collectionUsers).doc(user.uid).get();
         if (userDoc.exists) {
-          final data = userDoc.data()!;
-          userName.value = data['fullName'] ?? 'User';
-          // Consolidating businessName into users collection as per previous request
-          businessName.value = data['businessName'] ?? 'Business Name';
+          final userModel = UserModel.fromMap(userDoc.data()!, id: userDoc.id);
+          userName.value = userModel.fullName ?? 'User';
+          businessName.value = userModel.businessName ?? 'Business Name';
         }
 
         // Fetch Business specific details
         final businessDoc = await FirebaseFirestore.instance.collection(AppConstants.collectionBusinesses).doc(user.uid).get();
         if (businessDoc.exists) {
-          final data = businessDoc.data()!;
-          businessType.value = data['businessType'] ?? 'Professional Services';
+          final businessModel = BusinessModel.fromMap(businessDoc.data()!, id: businessDoc.id);
+          businessType.value = businessModel.ownerName ?? 'Owner';
           
-          final city = data['city'] ?? '';
-          final state = data['state'] ?? '';
-          if (city.isNotEmpty && state.isNotEmpty) {
-            location.value = '$city, $state';
-          } else {
-            location.value = 'Location not set';
+          if (businessModel.address != null) {
+            final city = businessModel.address!.city ?? '';
+            final state = businessModel.address!.state ?? '';
+            if (city.isNotEmpty && state.isNotEmpty) {
+              location.value = '$city, $state';
+            } else {
+              location.value = 'Location not set';
+            }
           }
         }
 
         // Fetch Dynamic Counts
-        final invoicesSnapshot = await FirebaseFirestore.instance
-            .collection('invoices')
-            .where('userId', isEqualTo: user.uid)
-            .get();
+        final invoicesSnapshot = await FirebaseFirestore.instance.collection('invoices').where('userId', isEqualTo: user.uid).get();
         activeInvoices.value = invoicesSnapshot.docs.length;
 
-        final customersSnapshot = await FirebaseFirestore.instance
-            .collection('customers')
-            .where('userId', isEqualTo: user.uid)
-            .get();
+        final customersSnapshot = await FirebaseFirestore.instance.collection('customers').where('userId', isEqualTo: user.uid).get();
         customers.value = customersSnapshot.docs.length;
       }
     } catch (e) {
