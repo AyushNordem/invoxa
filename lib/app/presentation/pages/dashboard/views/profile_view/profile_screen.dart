@@ -40,7 +40,7 @@ class ProfileScreen extends GetView<ProfileController> {
     return Obx(
       () => Column(
         children: [
-          Text(controller.businessName.value, style: StyleResource.instance.styleBold(fontSize: 24, color: AppColors.secondary)),
+          Text(controller.businessName.value.capitalize ?? "", style: StyleResource.instance.styleBold(fontSize: 24, color: AppColors.secondary)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -55,7 +55,7 @@ class ProfileScreen extends GetView<ProfileController> {
             ),
           ),
           const SizedBox(height: 12),
-          Text(controller.businessType.value, style: StyleResource.instance.styleSemiBold(fontSize: 14, color: AppColors.greyText)),
+          Text(controller.businessType.value.capitalize ?? "", style: StyleResource.instance.styleSemiBold(fontSize: 14, color: AppColors.greyText)),
           const SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

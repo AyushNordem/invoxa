@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/services/cloudinary_service.dart';
 import '../../../../core/services/firestore_service.dart';
 import '../../../../core/utils/app_snackbar.dart';
+import '../../../../data/models/business_model.dart';
 import '../../../../routes/app_pages.dart';
 
 class BusinessSetupController extends GetxController {
@@ -30,36 +31,40 @@ class BusinessSetupController extends GetxController {
       if (user != null) {
         final doc = await FirebaseFirestore.instance.collection('businesses').doc(user.uid).get();
         if (doc.exists) {
-          final data = doc.data()!;
-          businessNameController.text = data['businessName'] ?? '';
-          ownerNameController.text = data['ownerName'] ?? '';
-          emailController.text = data['email'] ?? '';
-          mobileController.text = data['mobile'] ?? '';
-          websiteController.text = data['website'] ?? '';
-          logoPath.value = data['logoUrl'] ?? '';
-          signaturePath.value = data['signatureUrl'] ?? '';
+          final businessModel = BusinessModel.fromMap(doc.data()!, id: doc.id);
 
-          final address = data['address'] ?? {};
-          addressController.text = address['street'] ?? '';
-          stateValue.value = address['state'];
-          cityController.text = address['city'] ?? '';
-          pincodeController.text = address['pincode'] ?? '';
+          businessNameController.text = businessModel.businessName ?? '';
+          ownerNameController.text = businessModel.ownerName ?? '';
+          emailController.text = businessModel.email ?? '';
+          mobileController.text = businessModel.mobile ?? '';
+          websiteController.text = businessModel.website ?? '';
+          logoPath.value = businessModel.logoUrl ?? '';
+          signaturePath.value = businessModel.signatureUrl ?? '';
 
-          final bank = data['bankDetails'] ?? {};
-          accountHolderController.text = bank['accountHolder'] ?? '';
-          bankNameController.text = bank['bankName'] ?? '';
-          accountNumberController.text = bank['accountNumber'] ?? '';
-          ifscController.text = bank['ifsc'] ?? '';
-          branchController.text = bank['branch'] ?? '';
+          if (businessModel.address != null) {
+            addressController.text = businessModel.address?.street ?? '';
+            stateValue.value = businessModel.address?.state ?? "";
+            cityController.text = businessModel.address?.city ?? '';
+            pincodeController.text = businessModel.address?.pincode ?? '';
+          }
 
-          final tax = data['taxSettings'] ?? {};
-          gstController.text = tax['gstNumber'] ?? '';
-          taxNumberController.text = tax['taxNumber'] ?? '';
-          currencyValue.value = tax['currency'] ?? 'INR';
-          defaultTaxController.text = tax['defaultTax'] ?? '';
-          enableCGST.value = tax['enableCGST'] ?? true;
-          enableSGST.value = tax['enableSGST'] ?? true;
-          enableIGST.value = tax['enableIGST'] ?? false;
+          if (businessModel.bankDetails != null) {
+            accountHolderController.text = businessModel.bankDetails?.accountHolder ?? '';
+            bankNameController.text = businessModel.bankDetails?.bankName ?? '';
+            accountNumberController.text = businessModel.bankDetails?.accountNumber ?? '';
+            ifscController.text = businessModel.bankDetails?.ifsc ?? '';
+            branchController.text = businessModel.bankDetails?.branch ?? '';
+          }
+
+          if (businessModel.taxSettings != null) {
+            gstController.text = businessModel.taxSettings?.gstNumber ?? '';
+            taxNumberController.text = businessModel.taxSettings?.taxNumber ?? '';
+            currencyValue.value = businessModel.taxSettings?.currency ?? 'INR';
+            defaultTaxController.text = businessModel.taxSettings?.defaultTax ?? '';
+            enableCGST.value = businessModel.taxSettings?.enableCGST ?? true;
+            enableSGST.value = businessModel.taxSettings?.enableSGST ?? true;
+            enableIGST.value = businessModel.taxSettings?.enableIGST ?? false;
+          }
         }
       }
     } catch (e) {
@@ -170,24 +175,22 @@ class BusinessSetupController extends GetxController {
           signatureUrl = signaturePath.value;
         }
 
-        // Prepare business data
-        final businessData = {
-          'businessName': businessNameController.text.trim(),
-          'ownerName': ownerNameController.text.trim(),
-          'email': emailController.text.trim(),
-          'mobile': mobileController.text.trim(),
-          'website': websiteController.text.trim(),
-          'logoUrl': logoUrl,
-          'signatureUrl': signatureUrl,
-          'address': {'street': addressController.text.trim(), 'state': stateValue.value, 'city': cityController.text.trim(), 'pincode': pincodeController.text.trim()},
-          'bankDetails': {'accountHolder': accountHolderController.text.trim(), 'bankName': bankNameController.text.trim(), 'accountNumber': accountNumberController.text.trim(), 'ifsc': ifscController.text.trim(), 'branch': branchController.text.trim()},
-          'taxSettings': {'gstNumber': gstController.text.trim(), 'taxNumber': taxNumberController.text.trim(), 'currency': currencyValue.value, 'defaultTax': defaultTaxController.text.trim(), 'enableCGST': enableCGST.value, 'enableSGST': enableSGST.value, 'enableIGST': enableIGST.value},
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-        };
+        // Prepare business data using model
+        final businessModel = BusinessModel(
+          businessName: businessNameController.text.trim(),
+          ownerName: ownerNameController.text.trim(),
+          email: emailController.text.trim(),
+          mobile: mobileController.text.trim(),
+          website: websiteController.text.trim(),
+          logoUrl: logoUrl,
+          signatureUrl: signatureUrl,
+          address: AddressInfo(street: addressController.text.trim(), state: stateValue.value, city: cityController.text.trim(), pincode: pincodeController.text.trim()),
+          bankDetails: BankDetails(accountHolder: accountHolderController.text.trim(), bankName: bankNameController.text.trim(), accountNumber: accountNumberController.text.trim(), ifsc: ifscController.text.trim(), branch: branchController.text.trim()),
+          taxSettings: TaxSettings(gstNumber: gstController.text.trim(), taxNumber: taxNumberController.text.trim(), currency: currencyValue.value, defaultTax: defaultTaxController.text.trim(), enableCGST: enableCGST.value, enableSGST: enableSGST.value, enableIGST: enableIGST.value),
+        );
 
-        // Save to Firestore
-        await _firestoreService.saveBusinessDetails(businessData);
+        // Save to Firestore using toMap()
+        await _firestoreService.saveBusinessDetails(businessModel.toMap());
 
         AppSnackbar.showSuccess(title: 'Success', message: 'Business setup completed!');
         Get.offAllNamed(Routes.HOME);

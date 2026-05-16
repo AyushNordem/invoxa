@@ -42,12 +42,12 @@ class ProfileController extends GetxController {
         if (businessDoc.exists) {
           final businessModel = BusinessModel.fromMap(businessDoc.data()!, id: businessDoc.id);
           businessType.value = businessModel.ownerName ?? 'Owner';
-          
+
           if (businessModel.address != null) {
-            final city = businessModel.address!.city ?? '';
-            final state = businessModel.address!.state ?? '';
-            if (city.isNotEmpty && state.isNotEmpty) {
-              location.value = '$city, $state';
+            final street = businessModel.address?.street ?? '';
+
+            if (street.isNotEmpty) {
+              location.value = street;
             } else {
               location.value = 'Location not set';
             }
