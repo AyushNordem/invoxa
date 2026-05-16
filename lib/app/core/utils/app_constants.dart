@@ -10,4 +10,5 @@ class AppConstants {
   // Firestore Collections
   static const String collectionBusinesses = 'businesses';
   static const String collectionUsers = 'users';
+  static const String collectionCustomers = 'customers';
 }

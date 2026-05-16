@@ -27,8 +27,9 @@ class BaseView extends StatelessWidget {
               ? AppBar(
                   title: Text(title ?? "", style: StyleResource.instance.styleMedium(fontSize: 18, color: AppColors.black)),
                   centerTitle: false,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
+                  animateColor: true,
+                  backgroundColor: Colors.white,
+                  elevation: 1,
                   leading: showBackButton
                       ? IconButton(
                           icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.black, size: 20),
