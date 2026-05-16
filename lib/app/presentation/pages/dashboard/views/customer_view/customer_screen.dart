@@ -151,8 +151,7 @@ class CustomerScreen extends GetView<CustomerController> {
         children: [
           // Header Section
           InkWell(
-            onTap: () => Get.toNamed(Routes.ADD_CUSTOMER, arguments: {'customer': customer})?.then((_) => controller.fetchCustomers()),
-
+            onTap: () => Get.toNamed(Routes.ADD_CUSTOMER, arguments: {'customer': customer}),
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
