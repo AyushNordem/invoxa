@@ -123,20 +123,33 @@ class AddInvoiceController extends GetxController {
     invoiceNumber.value = InvoiceNumberGenerator.generate(sequenceNumber: nextNum);
     invoiceNumberController.text = invoiceNumber.value;
   }
-
   // Calculation Logic
   double get subTotal => items.fold(0, (sum, item) => sum + item.amount);
   double get discountTotal => items.fold(0, (sum, item) => sum + (item.rate * item.quantity * (item.discount / 100)));
 
-  double get taxTotal {
-    double totalTax = 0;
-    if (hasCGST.value || hasSGST.value || hasIGST.value) {
-      totalTax = (subTotal - discountTotal) * (taxPercentage.value / 100);
-    }
-    return totalTax;
+  double get taxAmountBase => subTotal - discountTotal;
+
+  double get cgstAmount {
+    if (!hasCGST.value) return 0;
+    // Usually CGST + SGST = GST rate. So each is half.
+    final rate = hasSGST.value ? (taxPercentage.value / 2) : taxPercentage.value;
+    return taxAmountBase * (rate / 100);
   }
 
-  double get grandTotal => (subTotal - discountTotal) + taxTotal;
+  double get sgstAmount {
+    if (!hasSGST.value) return 0;
+    final rate = hasCGST.value ? (taxPercentage.value / 2) : taxPercentage.value;
+    return taxAmountBase * (rate / 100);
+  }
+
+  double get igstAmount {
+    if (!hasIGST.value) return 0;
+    return taxAmountBase * (taxPercentage.value / 100);
+  }
+
+  double get taxTotal => cgstAmount + sgstAmount + igstAmount;
+
+  double get grandTotal => taxAmountBase + taxTotal;
 
   void addItem(InvoiceItem item) {
     items.add(item);
@@ -144,6 +157,24 @@ class AddInvoiceController extends GetxController {
 
   void removeItem(int index) {
     items.removeAt(index);
+  }
+
+  void toggleCGST(bool value) {
+    hasCGST.value = value;
+    if (value) hasIGST.value = false;
+  }
+
+  void toggleSGST(bool value) {
+    hasSGST.value = value;
+    if (value) hasIGST.value = false;
+  }
+
+  void toggleIGST(bool value) {
+    hasIGST.value = value;
+    if (value) {
+      hasCGST.value = false;
+      hasSGST.value = false;
+    }
   }
 
   void selectCustomer(CustomerModel customer) {

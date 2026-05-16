@@ -32,6 +32,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                   _buildBuyerSection(),
                   const SizedBox(height: 32),
                   _buildItemsSection(),
+                  const SizedBox(height: 15),
                   _buildTaxToggles(),
                   const SizedBox(height: 32),
                   _buildMagicTotalsSection(),
@@ -408,93 +409,85 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
 
   Widget _buildTaxToggles() {
     final settings = controller.appSettings.value?.taxSettings;
-    final taxRates = [5.0, 12.0, 18.0, 28.0];
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 15),
       decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(24)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('TAX CONFIGURATION', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1.5)),
-          const SizedBox(height: 20),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [if (settings?.enableCGST ?? true) _buildModernToggle('CGST', controller.hasCGST), if (settings?.enableSGST ?? true) _buildModernToggle('SGST', controller.hasSGST), if (settings?.enableIGST ?? true) _buildModernToggle('IGST', controller.hasIGST)],
-          ),
-          const SizedBox(height: 24),
-          Text('GST RATE (%)', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1.5)),
-          const SizedBox(height: 12),
-          Obx(
-            () => Wrap(
-              spacing: 10,
-              children: taxRates.map((rate) {
-                final isSelected = controller.taxPercentage.value == rate;
-                return GestureDetector(
-                  onTap: () => controller.taxPercentage.value = rate,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.secondary : AppColors.primarySoft.withOpacity(0.3),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: isSelected ? AppColors.secondary : Colors.transparent),
-                    ),
-                    child: Text('${rate.toInt()}%', style: StyleResource.instance.styleBold(fontSize: 13, color: isSelected ? AppColors.white : AppColors.secondary)),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
+          const SizedBox(height: 10),
+          if (settings?.enableCGST ?? true) _buildMagicToggle('CGST (Central)', controller.hasCGST, (v) => controller.toggleCGST(v)),
+          if (settings?.enableSGST ?? true) _buildMagicToggle('SGST (State)', controller.hasSGST, (v) => controller.toggleSGST(v)),
+          if (settings?.enableIGST ?? true) _buildMagicToggle('IGST (Integrated)', controller.hasIGST, (v) => controller.toggleIGST(v)),
         ],
       ),
     );
   }
 
-  Widget _buildModernToggle(String label, RxBool state) {
-    return GestureDetector(
-      onTap: () => state.value = !state.value,
-      child: Obx(
-        () => AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          decoration: BoxDecoration(
-            color: state.value ? AppColors.primary : AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: state.value ? AppColors.primary : AppColors.borderGrey),
-            boxShadow: state.value ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))] : null,
+  Widget _buildMagicToggle(String label, RxBool state, Function(bool) onChanged) {
+    return Obx(
+      () => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5.0),
+        child: InkWell(
+          onTap: () => onChanged(!state.value),
+          borderRadius: BorderRadius.circular(16),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: state.value ? AppColors.primary.withOpacity(0.05) : AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: state.value ? AppColors.primary.withOpacity(0.3) : AppColors.borderGrey.withOpacity(0.5)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(color: state.value ? AppColors.primary : AppColors.borderGrey.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+                  child: Icon(state.value ? Icons.check_rounded : Icons.add_rounded, size: 16, color: state.value ? AppColors.white : AppColors.greyText),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(label, style: StyleResource.instance.styleBold(fontSize: 14, color: state.value ? AppColors.primary : AppColors.secondary)),
+                ),
+              ],
+            ),
           ),
-          child: Text(label, style: StyleResource.instance.styleBold(fontSize: 13, color: state.value ? AppColors.white : AppColors.secondary)),
         ),
       ),
     );
   }
 
   Widget _buildMagicTotalsSection() {
-    return Container(
-      padding: const EdgeInsets.all(28),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [AppColors.secondary, Color(0xFF1A1F26)]),
-        borderRadius: BorderRadius.circular(32),
-        boxShadow: [BoxShadow(color: AppColors.secondary.withOpacity(0.3), blurRadius: 25, offset: const Offset(0, 15))],
-      ),
-      child: Column(
-        children: [
-          _buildSummaryLine('Sub Total', '₹${controller.subTotal.toStringAsFixed(2)}'),
-          _buildSummaryLine('Discount', '-₹${controller.discountTotal.toStringAsFixed(2)}', valueColor: Colors.redAccent),
-          _buildSummaryLine('GST (${controller.taxPercentage.value}%)', '₹${controller.taxTotal.toStringAsFixed(2)}'),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Divider(color: Colors.white12),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Grand Total', style: StyleResource.instance.styleBold(fontSize: 20, color: Colors.white)),
-              Text('₹${controller.grandTotal.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 28, color: AppColors.primary)),
-            ],
-          ),
-        ],
+    return Obx(
+      () => Container(
+        padding: const EdgeInsets.all(28),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [AppColors.secondary, Color(0xFF1A1F26)]),
+          borderRadius: BorderRadius.circular(32),
+          boxShadow: [BoxShadow(color: AppColors.secondary.withOpacity(0.3), blurRadius: 25, offset: const Offset(0, 15))],
+        ),
+        child: Column(
+          children: [
+            _buildSummaryLine('Sub Total', '₹${controller.subTotal.toStringAsFixed(2)}'),
+            _buildSummaryLine('Discount', '-₹${controller.discountTotal.toStringAsFixed(2)}', valueColor: Colors.redAccent),
+            if (controller.hasCGST.value) _buildSummaryLine('CGST (${(controller.hasSGST.value ? controller.taxPercentage.value / 2 : controller.taxPercentage.value).toInt()}%)', '₹${controller.cgstAmount.toStringAsFixed(2)}'),
+            if (controller.hasSGST.value) _buildSummaryLine('SGST (${(controller.hasCGST.value ? controller.taxPercentage.value / 2 : controller.taxPercentage.value).toInt()}%)', '₹${controller.sgstAmount.toStringAsFixed(2)}'),
+            if (controller.hasIGST.value) _buildSummaryLine('IGST (${controller.taxPercentage.value.toInt()}%)', '₹${controller.igstAmount.toStringAsFixed(2)}'),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 20),
+              child: Divider(color: Colors.white12),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Grand Total', style: StyleResource.instance.styleBold(fontSize: 20, color: Colors.white)),
+                Text('₹${controller.grandTotal.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 28, color: AppColors.primary)),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -740,21 +733,6 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildCompactBadge(IconData icon, String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          Text(text, style: StyleResource.instance.styleBold(fontSize: 11, color: color)),
-        ],
-      ),
     );
   }
 
