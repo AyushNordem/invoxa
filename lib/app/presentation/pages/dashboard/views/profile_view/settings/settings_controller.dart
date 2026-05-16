@@ -15,7 +15,7 @@ class SettingsController extends GetxController {
   final prefixController = TextEditingController(text: 'INV-');
 
   // Units of Measurement
-  final units = <String>['Piece (pcs)', 'Unit', 'Item', 'Pair', 'Set', 'Packet', 'Inch', 'Feet (ft)', 'Square Feet (sq ft)'].obs;
+  final units = <String>['Square Feet (sq ft)', 'Running Feet (run ft)', 'Piece (pcs)', 'Unit', 'Item', 'Pair', 'Set', 'Packet', 'Inch', 'Feet (ft)'].obs;
   final customUnitController = TextEditingController();
 
   // Tax Settings

@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:invoxa/app/presentation/pages/dashboard/views/profile_view/settings/settings_controller.dart';
 
 import '../../../../../../core/utils/app_constants.dart';
 import '../../../../../../core/utils/app_snackbar.dart';
@@ -29,7 +30,8 @@ class AddInvoiceController extends GetxController {
 
   // Items
   final items = <InvoiceItem>[].obs;
-  final unitTypes = <String>[].obs;
+  RxString selectedInvoiceUnit = "".obs;
+  final units = <String>[].obs;
 
   // Tax Toggles
   final hasCGST = true.obs;
@@ -45,6 +47,9 @@ class AddInvoiceController extends GetxController {
   void onInit() {
     super.onInit();
     fetchInitialData();
+    SettingsController settingsController = Get.put(SettingsController());
+    units.value = settingsController.units;
+    selectedInvoiceUnit.value = units.first;
   }
 
   Future<void> fetchInitialData() async {
@@ -75,18 +80,7 @@ class AddInvoiceController extends GetxController {
             taxPercentage.value = double.tryParse(settings.taxSettings!.defaultTax!) ?? 18.0;
           }
         }
-
-        // Initialize unit types from settings
-        if (settings.unitTypes != null && settings.unitTypes!.isNotEmpty) {
-          unitTypes.value = settings.unitTypes!;
-        } else {
-          unitTypes.value = ['PCS', 'KG', 'NOS', 'MTR', 'BOX', 'UNT', 'SET', 'HRS'];
-        }
-      } else {
-        // Fallback defaults
-        unitTypes.value = ['PCS', 'KG', 'NOS', 'MTR', 'BOX', 'UNT', 'SET', 'HRS'];
       }
-
       // 2. Fetch All Customers for Buyer selection
       final custSnapshot = await FirebaseFirestore.instance.collection(AppConstants.collectionCustomers).where('userId', isEqualTo: user.uid).get();
       allCustomers.value = custSnapshot.docs.map((doc) => CustomerModel.fromMap(doc.data(), id: doc.id)).toList();
@@ -123,6 +117,7 @@ class AddInvoiceController extends GetxController {
     invoiceNumber.value = InvoiceNumberGenerator.generate(sequenceNumber: nextNum);
     invoiceNumberController.text = invoiceNumber.value;
   }
+
   // Calculation Logic
   double get subTotal => items.fold(0, (sum, item) => sum + item.amount);
   double get discountTotal => items.fold(0, (sum, item) => sum + (item.rate * item.quantity * (item.discount / 100)));

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:invoxa/app/core/theme/app_sizes.dart';
 import 'package:invoxa/app/presentation/widgets/base_view.dart';
 
 import '../../../../../../core/theme/app_colors.dart';
@@ -26,17 +27,17 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                 padding: const EdgeInsets.all(20.0),
                 children: [
                   _buildMagicHeader(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.lg),
                   _buildCombinedSellerBankCard(),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.lg),
                   _buildBuyerSection(),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.lg),
                   _buildItemsSection(),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: AppSpacing.lg),
                   _buildTaxToggles(),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: AppSpacing.lg),
                   _buildMagicTotalsSection(),
-                  const SizedBox(height: 100),
+                  const SizedBox(height: 50),
                 ],
               ),
       ),
@@ -462,10 +463,10 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
   Widget _buildMagicTotalsSection() {
     return Obx(
       () => Container(
-        padding: const EdgeInsets.all(28),
+        padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
           gradient: const LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [AppColors.secondary, Color(0xFF1A1F26)]),
-          borderRadius: BorderRadius.circular(32),
+          borderRadius: BorderRadius.circular(15),
           boxShadow: [BoxShadow(color: AppColors.secondary.withOpacity(0.3), blurRadius: 25, offset: const Offset(0, 15))],
         ),
         child: Column(
@@ -577,7 +578,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
     final discountCtrl = TextEditingController(text: item?.discount.toString() ?? '0');
     final hsnCtrl = TextEditingController(text: item?.hsnCode);
 
-    final selectedUnit = (item?.unit ?? (controller.unitTypes.isNotEmpty ? controller.unitTypes.first : 'PCS')).obs;
+    final selectedUnit = (item?.unit ?? controller.selectedInvoiceUnit.value).obs;
 
     Get.bottomSheet(
       Container(
@@ -639,7 +640,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                                 value: selectedUnit.value,
                                 isExpanded: true,
                                 borderRadius: BorderRadius.circular(16),
-                                items: controller.unitTypes
+                                items: controller.units
                                     .map(
                                       (u) => DropdownMenuItem(
                                         value: u,
