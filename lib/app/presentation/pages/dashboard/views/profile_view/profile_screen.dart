@@ -14,6 +14,8 @@ class ProfileScreen extends GetView<ProfileController> {
   @override
   Widget build(BuildContext context) {
     return BaseView(
+      title: "Profile",
+      showBackButton: false,
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         padding: AppSpacing.screenPadding,
@@ -80,18 +82,19 @@ class ProfileScreen extends GetView<ProfileController> {
 
   Widget _buildStatCard(String label, String value) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.white,
+        gradient: const LinearGradient(colors: [AppColors.primary, AppColors.primaryBorder], begin: Alignment.topLeft, end: Alignment.bottomRight),
         borderRadius: AppRadius.card,
         boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.02), blurRadius: 10)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: StyleResource.instance.styleBold(fontSize: 10, color: AppColors.greyText.withOpacity(0.6))),
+          Text(label, style: StyleResource.instance.styleBold(fontSize: 10, color: AppColors.white)),
           const SizedBox(height: 8),
-          Text(value, style: StyleResource.instance.styleBold(fontSize: 22, color: AppColors.secondary)),
+          Text(value, style: StyleResource.instance.styleBold(fontSize: 22, color: AppColors.white)),
         ],
       ),
     );
