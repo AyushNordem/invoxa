@@ -13,6 +13,10 @@ abstract class Routes {
   static const INVOICE_PREVIEW = _Paths.INVOICE_PREVIEW;
   static const UPDATE_PASSWORD = _Paths.UPDATE_PASSWORD;
   static const SETTINGS = _Paths.SETTINGS;
+  static const EDIT_PROFILE = _Paths.EDIT_PROFILE;
+  static const PRIVACY_POLICY = _Paths.PRIVACY_POLICY;
+  static const TERMS_CONDITIONS = _Paths.TERMS_CONDITIONS;
+  static const HELP_SUPPORT = _Paths.HELP_SUPPORT;
 }
 
 abstract class _Paths {
@@ -28,4 +32,8 @@ abstract class _Paths {
   static const INVOICE_PREVIEW = '/invoice-preview';
   static const UPDATE_PASSWORD = '/update-password';
   static const SETTINGS = '/settings';
+  static const EDIT_PROFILE = '/edit-profile';
+  static const PRIVACY_POLICY = '/privacy-policy';
+  static const TERMS_CONDITIONS = '/terms-conditions';
+  static const HELP_SUPPORT = '/help-support';
 }

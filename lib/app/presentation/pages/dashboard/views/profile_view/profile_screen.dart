@@ -24,8 +24,6 @@ class ProfileScreen extends GetView<ProfileController> {
             const SizedBox(height: AppSpacing.xl),
             _buildHeader(),
             const SizedBox(height: 24),
-            _buildEditButton(),
-            const SizedBox(height: 24),
             _buildStatsRow(),
             const SizedBox(height: 24),
             _buildMenuSection(),
@@ -83,21 +81,6 @@ class ProfileScreen extends GetView<ProfileController> {
     );
   }
 
-  Widget _buildEditButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: Text('Edit Profile', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.white)),
-      ),
-    );
-  }
-
   Widget _buildStatsRow() {
     return Row(
       children: [
@@ -132,12 +115,13 @@ class ProfileScreen extends GetView<ProfileController> {
       decoration: BoxDecoration(color: AppColors.white, borderRadius: AppRadius.card),
       child: Column(
         children: [
+          _buildMenuItem(Icons.person_outline, 'Edit Profile', onTap: () => Get.toNamed(Routes.EDIT_PROFILE)),
           _buildMenuItem(Icons.business_outlined, 'Business Information', onTap: () => Get.toNamed(Routes.BUSINESS_SETUP, arguments: {'isEditing': true})),
           _buildMenuItem(Icons.lock_outline, 'Update Password', onTap: () => Get.toNamed(Routes.UPDATE_PASSWORD)),
           _buildMenuItem(Icons.settings_outlined, 'Settings', onTap: () => Get.toNamed(Routes.SETTINGS)),
-          _buildMenuItem(Icons.shield_outlined, 'Privacy Policy'),
-          _buildMenuItem(Icons.description_outlined, 'Terms & Conditions'),
-          _buildMenuItem(Icons.help_outline, 'Help & Support', isLast: true),
+          _buildMenuItem(Icons.shield_outlined, 'Privacy Policy', onTap: () => Get.toNamed(Routes.PRIVACY_POLICY)),
+          _buildMenuItem(Icons.description_outlined, 'Terms & Conditions', onTap: () => Get.toNamed(Routes.TERMS_CONDITIONS)),
+          _buildMenuItem(Icons.help_outline, 'Help & Support', isLast: true, onTap: () => Get.toNamed(Routes.HELP_SUPPORT)),
         ],
       ),
     );
@@ -170,7 +154,7 @@ class ProfileScreen extends GetView<ProfileController> {
     return Container(
       decoration: BoxDecoration(color: AppColors.white, borderRadius: AppRadius.card),
       child: InkWell(
-        onTap: controller.logout,
+        onTap: controller.confirmLogout,
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(
