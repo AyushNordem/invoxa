@@ -15,98 +15,99 @@ class BusinessSetupView extends GetView<BusinessSetupController> {
 
   @override
   Widget build(BuildContext context) {
-    return BaseView(
-      title: 'Business Setup',
-      showBackButton: false,
-      child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: Form(
-          key: controller.formKey1,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Business Profile', style: StyleResource.instance.styleBold(fontSize: 28, color: AppColors.black)),
-              const SizedBox(height: AppSpacing.sm),
-              Text('Finalize your professional identity and banking details for seamless invoicing.', style: StyleResource.instance.styleRegular(fontSize: 14, color: AppColors.greyText)),
-              const SizedBox(height: AppSpacing.lg),
-              _buildSectionCard(
-                icon: Icons.business,
-                title: 'Business Information',
-                children: [
-                  _buildUploadBox(label: 'Upload Business Logo', subtext: 'SVG, PNG or JPG (max. 2MB)', isLogo: true),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'Business Name', hint: 'e.g. Acme Corp', controller: controller.businessNameController, validator: (v) => controller.validateRequired(v, 'Business Name')),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'Owner Name', hint: 'John Doe', controller: controller.ownerNameController, validator: (v) => controller.validateRequired(v, 'Owner Name')),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'GST Number', hint: '22AAAAA0000A1Z5', controller: controller.gstController, validator: controller.validateGST),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'Tax Number (PAN/EIN)', hint: 'ABCDE1234F', controller: controller.taxNumberController, validator: (v) => controller.validateRequired(v, 'Tax Number')),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'Business Email', hint: 'contact@business.com', controller: controller.emailController, keyboardType: TextInputType.emailAddress, validator: controller.validateEmail),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'Phone Number', hint: '+1 (555) 000-0000', controller: controller.mobileController, keyboardType: TextInputType.phone, validator: controller.validatePhone),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'Business Address', hint: 'Street, Building, Suite...', controller: controller.addressController, validator: (v) => controller.validateRequired(v, 'Address')),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'State / Province', hint: 'Select State', controller: controller.cityController, validator: (v) => controller.validateRequired(v, 'State')),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'Pincode / Zip', hint: '000000', controller: controller.pincodeController, keyboardType: TextInputType.number, validator: controller.validatePincode),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'Website (Optional)', hint: 'www.yourbusiness.com', controller: controller.websiteController, keyboardType: TextInputType.url),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              _buildSectionCard(
-                icon: Icons.account_balance,
-                title: 'Banking Information',
-                children: [
-                  CustomTextField(label: 'Account Holder Name', hint: 'Full name as per bank records', controller: controller.accountHolderController, validator: (v) => controller.validateRequired(v, 'Account Holder Name')),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'Bank Name', hint: 'Global Trust Bank', controller: controller.bankNameController, validator: (v) => controller.validateRequired(v, 'Bank Name')),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'Branch Name', hint: 'Downtown Branch', controller: controller.branchController, validator: (v) => controller.validateRequired(v, 'Branch Name')),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'Account Number', hint: '**** **** **** 1234', controller: controller.accountNumberController, keyboardType: TextInputType.number, validator: (v) => controller.validateRequired(v, 'Account Number')),
-                  const SizedBox(height: AppSpacing.md),
-                  CustomTextField(label: 'IFSC / SWIFT Code', hint: 'CTB0001234', controller: controller.ifscController, validator: (v) => controller.validateRequired(v, 'IFSC Code')),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xl),
-
-              _buildSectionCard(
-                icon: Icons.edit,
-                title: 'Digital Signature',
-                children: [_buildUploadBox(label: 'Click to upload or draw signature', subtext: 'Upload File | Draw Now', isLogo: false, isSignature: true)],
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-
-              SizedBox(
-                width: double.infinity,
-                child: Obx(
-                  () => ElevatedButton(
-                    onPressed: controller.isLoading.value ? null : controller.saveAndContinue,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Obx(
+      () => BaseView(
+        title: controller.isEditing.value ? 'Edit Business Info' : 'Business Setup',
+        showBackButton: controller.isEditing.value,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Form(
+            key: controller.formKey1,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(controller.isEditing.value ? 'Update Business Profile' : 'Business Profile', style: StyleResource.instance.styleBold(fontSize: 28, color: AppColors.black)),
+                const SizedBox(height: AppSpacing.sm),
+                Text(controller.isEditing.value ? 'Modify your business details and banking information to keep your profile up to date.' : 'Finalize your professional identity and banking details for seamless invoicing.',
+                    style: StyleResource.instance.styleRegular(fontSize: 14, color: AppColors.greyText)),
+                const SizedBox(height: AppSpacing.lg),
+                _buildSectionCard(
+                  icon: Icons.business,
+                  title: 'Business Information',
+                  children: [
+                    _buildUploadBox(label: 'Upload Business Logo', subtext: 'SVG, PNG or JPG (max. 2MB)', isLogo: true),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'Business Name', hint: 'e.g. Acme Corp', controller: controller.businessNameController, validator: (v) => controller.validateRequired(v, 'Business Name')),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'Owner Name', hint: 'John Doe', controller: controller.ownerNameController, validator: (v) => controller.validateRequired(v, 'Owner Name')),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'GST Number', hint: '22AAAAA0000A1Z5', controller: controller.gstController, validator: controller.validateGST),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'Tax Number (PAN/EIN)', hint: 'ABCDE1234F', controller: controller.taxNumberController, validator: (v) => controller.validateRequired(v, 'Tax Number')),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'Business Email', hint: 'contact@business.com', controller: controller.emailController, keyboardType: TextInputType.emailAddress, validator: controller.validateEmail),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'Phone Number', hint: '+1 (555) 000-0000', controller: controller.mobileController, keyboardType: TextInputType.phone, validator: controller.validatePhone),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'Business Address', hint: 'Street, Building, Suite...', controller: controller.addressController, validator: (v) => controller.validateRequired(v, 'Address')),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'State / Province', hint: 'Select State', controller: controller.cityController, validator: (v) => controller.validateRequired(v, 'State')),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'Pincode / Zip', hint: '000000', controller: controller.pincodeController, keyboardType: TextInputType.number, validator: controller.validatePincode),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'Website (Optional)', hint: 'www.yourbusiness.com', controller: controller.websiteController, keyboardType: TextInputType.url),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                _buildSectionCard(
+                  icon: Icons.account_balance,
+                  title: 'Banking Information',
+                  children: [
+                    CustomTextField(label: 'Account Holder Name', hint: 'Full name as per bank records', controller: controller.accountHolderController, validator: (v) => controller.validateRequired(v, 'Account Holder Name')),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'Bank Name', hint: 'Global Trust Bank', controller: controller.bankNameController, validator: (v) => controller.validateRequired(v, 'Bank Name')),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'Branch Name', hint: 'Downtown Branch', controller: controller.branchController, validator: (v) => controller.validateRequired(v, 'Branch Name')),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'Account Number', hint: '**** **** **** 1234', controller: controller.accountNumberController, keyboardType: TextInputType.number, validator: (v) => controller.validateRequired(v, 'Account Number')),
+                    const SizedBox(height: AppSpacing.md),
+                    CustomTextField(label: 'IFSC / SWIFT Code', hint: 'CTB0001234', controller: controller.ifscController, validator: (v) => controller.validateRequired(v, 'IFSC Code')),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                _buildSectionCard(
+                  icon: Icons.edit,
+                  title: 'Digital Signature',
+                  children: [_buildUploadBox(label: 'Click to upload or draw signature', subtext: 'Upload File | Draw Now', isLogo: false, isSignature: true)],
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+                SizedBox(
+                  width: double.infinity,
+                  child: Obx(
+                    () => ElevatedButton(
+                      onPressed: controller.isLoading.value ? null : controller.saveAndContinue,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: controller.isLoading.value
+                          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: AppColors.white, strokeWidth: 2))
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(controller.isEditing.value ? 'Update Business Profile' : 'Save & Complete Setup', style: StyleResource.instance.styleSemiBold(fontSize: 16, color: AppColors.white)),
+                                const SizedBox(width: 8),
+                                Icon(controller.isEditing.value ? Icons.update : Icons.check_circle_outline, color: AppColors.white, size: 20),
+                              ],
+                            ),
                     ),
-                    child: controller.isLoading.value
-                        ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: AppColors.white, strokeWidth: 2))
-                        : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text('Save & Complete Setup', style: StyleResource.instance.styleSemiBold(fontSize: 16, color: AppColors.white)),
-                              const SizedBox(width: 8),
-                              const Icon(Icons.check_circle_outline, color: AppColors.white, size: 20),
-                            ],
-                          ),
                   ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-            ],
+                const SizedBox(height: AppSpacing.xxl),
+              ],
+            ),
           ),
         ),
       ),
@@ -191,7 +192,7 @@ class BusinessSetupView extends GetView<BusinessSetupController> {
                   )
                 : ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.file(File(path), height: 100, fit: BoxFit.contain),
+                    child: path.startsWith('http') ? Image.network(path, height: 100, fit: BoxFit.contain) : Image.file(File(path), height: 100, fit: BoxFit.contain),
                   ),
           ),
         ),

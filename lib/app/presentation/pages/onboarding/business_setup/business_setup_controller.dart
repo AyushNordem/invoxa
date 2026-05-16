@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -11,6 +12,62 @@ import '../../../../routes/app_pages.dart';
 class BusinessSetupController extends GetxController {
   final currentStep = 0.obs;
   final isLoading = false.obs;
+  final isEditing = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    if (Get.arguments != null && Get.arguments['isEditing'] == true) {
+      isEditing.value = true;
+      fetchExistingData();
+    }
+  }
+
+  Future<void> fetchExistingData() async {
+    isLoading.value = true;
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final doc = await FirebaseFirestore.instance.collection('businesses').doc(user.uid).get();
+        if (doc.exists) {
+          final data = doc.data()!;
+          businessNameController.text = data['businessName'] ?? '';
+          ownerNameController.text = data['ownerName'] ?? '';
+          emailController.text = data['email'] ?? '';
+          mobileController.text = data['mobile'] ?? '';
+          websiteController.text = data['website'] ?? '';
+          logoPath.value = data['logoUrl'] ?? '';
+          signaturePath.value = data['signatureUrl'] ?? '';
+
+          final address = data['address'] ?? {};
+          addressController.text = address['street'] ?? '';
+          stateValue.value = address['state'];
+          cityController.text = address['city'] ?? '';
+          pincodeController.text = address['pincode'] ?? '';
+
+          final bank = data['bankDetails'] ?? {};
+          accountHolderController.text = bank['accountHolder'] ?? '';
+          bankNameController.text = bank['bankName'] ?? '';
+          accountNumberController.text = bank['accountNumber'] ?? '';
+          ifscController.text = bank['ifsc'] ?? '';
+          branchController.text = bank['branch'] ?? '';
+
+          final tax = data['taxSettings'] ?? {};
+          gstController.text = tax['gstNumber'] ?? '';
+          taxNumberController.text = tax['taxNumber'] ?? '';
+          currencyValue.value = tax['currency'] ?? 'INR';
+          defaultTaxController.text = tax['defaultTax'] ?? '';
+          enableCGST.value = tax['enableCGST'] ?? true;
+          enableSGST.value = tax['enableSGST'] ?? true;
+          enableIGST.value = tax['enableIGST'] ?? false;
+        }
+      }
+    } catch (e) {
+      print('Error fetching business data: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
 
   // Step 1: Business Info
   final formKey1 = GlobalKey<FormState>();

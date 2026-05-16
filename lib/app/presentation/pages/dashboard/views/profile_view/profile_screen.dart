@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_sizes.dart';
 import '../../../../../core/theme/style_resource.dart';
+import '../../../../../routes/app_pages.dart';
 import 'profile_controller.dart';
 
 class ProfileScreen extends GetView<ProfileController> {
@@ -129,13 +130,22 @@ class ProfileScreen extends GetView<ProfileController> {
   Widget _buildMenuSection() {
     return Container(
       decoration: BoxDecoration(color: AppColors.white, borderRadius: AppRadius.card),
-      child: Column(children: [_buildMenuItem(Icons.settings_outlined, 'Settings'), _buildMenuItem(Icons.shield_outlined, 'Privacy Policy'), _buildMenuItem(Icons.description_outlined, 'Terms & Conditions'), _buildMenuItem(Icons.help_outline, 'Help & Support', isLast: true)]),
+      child: Column(
+        children: [
+          _buildMenuItem(Icons.business_outlined, 'Business Information', onTap: () => Get.toNamed(Routes.BUSINESS_SETUP, arguments: {'isEditing': true})),
+          _buildMenuItem(Icons.lock_outline, 'Update Password', onTap: () => Get.toNamed(Routes.UPDATE_PASSWORD)),
+          _buildMenuItem(Icons.settings_outlined, 'Settings'),
+          _buildMenuItem(Icons.shield_outlined, 'Privacy Policy'),
+          _buildMenuItem(Icons.description_outlined, 'Terms & Conditions'),
+          _buildMenuItem(Icons.help_outline, 'Help & Support', isLast: true),
+        ],
+      ),
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, {bool isLast = false}) {
+  Widget _buildMenuItem(IconData icon, String title, {VoidCallback? onTap, bool isLast = false}) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap ?? () {},
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
