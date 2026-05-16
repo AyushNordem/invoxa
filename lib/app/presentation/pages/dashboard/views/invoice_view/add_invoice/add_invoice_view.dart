@@ -212,6 +212,8 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
   }
 
   Widget _buildMagicCustomerPreview(CustomerModel customer) {
+    final address = '${customer.address?.street ?? ''} ${customer.address?.city ?? ''} ${customer.address?.state ?? ''} ${customer.address?.zipCode ?? ''}'.trim();
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -223,15 +225,29 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Icons.contact_mail_rounded, size: 16, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Text(customer.contactPerson ?? 'No Contact', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.primary)),
+              Row(
+                children: [
+                  const Icon(Icons.contact_mail_rounded, size: 16, color: AppColors.primary),
+                  const SizedBox(width: 8),
+                  Text(customer.contactPerson?.capitalize ?? 'No Contact', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.primary)),
+                ],
+              ),
+              IconButton(
+                onPressed: () => Get.toNamed(Routes.ADD_CUSTOMER, arguments: {'customer': customer})?.then((_) => controller.fetchInitialData()),
+                icon: const Icon(Icons.edit_note_rounded, color: AppColors.primary, size: 22),
+                constraints: const BoxConstraints(),
+                padding: EdgeInsets.zero,
+              ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(customer.name ?? '', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.secondary)),
-          Text(customer.email ?? '', style: StyleResource.instance.styleMedium(fontSize: 13, color: AppColors.greyText)),
+          Text(customer.name?.capitalize ?? '', style: StyleResource.instance.styleBold(fontSize: 18, color: AppColors.secondary)),
+          const SizedBox(height: 12),
+          if (address.isNotEmpty) _buildModernInfoRow(Icons.location_on_rounded, address),
+          if (customer.mobile != null && customer.mobile!.isNotEmpty) _buildModernInfoRow(Icons.phone_rounded, customer.mobile!),
+          if (customer.email != null && customer.email!.isNotEmpty) _buildModernInfoRow(Icons.email_rounded, customer.email!),
+          if (customer.gstNumber != null && customer.gstNumber!.isNotEmpty) _buildModernInfoRow(Icons.description_rounded, 'GST: ${customer.gstNumber}'),
         ],
       ),
     );
