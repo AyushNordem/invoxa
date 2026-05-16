@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:invoxa/app/core/theme/app_sizes.dart';
 import 'package:invoxa/app/presentation/widgets/base_view.dart';
+import 'package:invoxa/app/presentation/widgets/gradient_button.dart';
 
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/style_resource.dart';
@@ -19,7 +20,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
   Widget build(BuildContext context) {
     return BaseView(
       title: 'Create Invoice',
-      bottomNavigationBar: _buildMagicFooter(),
+      bottomNavigationBar: Obx(() => GradientButton(text: "Save Invoice", isLoading: controller.isButtonLoading.value, onPressed: () => controller.saveInvoice()).paddingSymmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm)),
       child: Obx(
         () => controller.isLoading.value
             ? const Center(child: CircularProgressIndicator())
@@ -501,53 +502,6 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
         children: [
           Text(label, style: StyleResource.instance.styleMedium(fontSize: 15, color: Colors.white60)),
           Text(value, style: StyleResource.instance.styleBold(fontSize: 16, color: valueColor)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMagicFooter() {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -10))],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: OutlinedButton(
-              onPressed: () => Get.back(),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              ),
-              child: Text('DRAFT', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.secondary)),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            flex: 2,
-            child: ElevatedButton(
-              onPressed: () => controller.saveInvoice(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 18),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                elevation: 8,
-                shadowColor: AppColors.primary.withOpacity(0.5),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('SAVE INVOICE', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.white)),
-                  const SizedBox(width: 12),
-                  const Icon(Icons.auto_awesome_rounded, color: AppColors.white, size: 20),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );

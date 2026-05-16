@@ -14,6 +14,7 @@ import '../../../../../../data/models/setting_model.dart';
 
 class AddInvoiceController extends GetxController {
   final isLoading = false.obs;
+  final isButtonLoading = false.obs;
 
   // Seller (Business) Profile
   final sellerProfile = Rxn<BusinessModel>();
@@ -187,7 +188,7 @@ class AddInvoiceController extends GetxController {
     }
 
     try {
-      isLoading.value = true;
+      isButtonLoading.value = true;
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
@@ -218,7 +219,7 @@ class AddInvoiceController extends GetxController {
     } catch (e) {
       AppSnackbar.showError(title: 'Error', message: 'Failed to save invoice: $e');
     } finally {
-      isLoading.value = false;
+      isButtonLoading.value = false;
     }
   }
 
