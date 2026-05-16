@@ -31,12 +31,60 @@ class SettingsView extends GetView<SettingsController> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           _buildLabel('Currency Selection'),
-                          _buildDropdown(controller.currency, ['INR - Indian Rupee', 'USD - US Dollar', 'EUR - Euro']),
-                          const SizedBox(height: 20),
-                          CustomTextField(label: 'Invoice Prefix', hint: 'INV-', controller: controller.prefixController),
-                          const SizedBox(height: 20),
-                          _buildLabel('Financial Year Format'),
-                          _buildDropdown(controller.financialYear, ['Apr - Mar', 'Jan - Dec'], icon: Icons.calendar_today_outlined),
+                          _buildDropdown(controller.currency, ['₹ INR - Indian Rupee', '\$ USD - US Dollar', '€ EUR - Euro']),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader(Icons.straighten_outlined, 'Units of Measurement'),
+                    const SizedBox(height: 12),
+                    _buildCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: controller.units
+                                .map(
+                                  (unit) => Chip(
+                                    label: Text(unit, style: StyleResource.instance.styleMedium(fontSize: 12, color: AppColors.secondary)),
+                                    backgroundColor: AppColors.primarySoft,
+                                    deleteIcon: const Icon(Icons.close, size: 14, color: AppColors.primary),
+                                    onDeleted: () => controller.removeUnit(unit),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: controller.customUnitController,
+                                  decoration: InputDecoration(
+                                    hintText: 'Add custom unit (e.g. Box)',
+                                    hintStyle: StyleResource.instance.styleRegular(fontSize: 14, color: AppColors.greyText),
+                                    filled: true,
+                                    fillColor: AppColors.borderGrey.withOpacity(0.1),
+                                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton(
+                                onPressed: controller.addCustomUnit,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  padding: const EdgeInsets.all(12),
+                                ),
+                                child: const Icon(Icons.add, color: AppColors.white),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -49,16 +97,13 @@ class SettingsView extends GetView<SettingsController> {
                         children: [
                           _buildToggleRow('Enable GST', 'Apply Goods & Services Tax', controller.enableGST),
                           if (controller.enableGST.value) ...[
+                            const SizedBox(height: 20),
+                            CustomTextField(label: 'CGST (Central Tax) %', hint: '9', controller: controller.cgstController, keyboardType: TextInputType.number),
                             const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [Text('${controller.gstRate.value.toInt()}%', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.primary))],
-                            ),
-                            Slider(value: controller.gstRate.value, min: 0, max: 28, divisions: 28, activeColor: AppColors.primary, onChanged: (val) => controller.gstRate.value = val),
+                            CustomTextField(label: 'SGST (State Tax) %', hint: '9', controller: controller.sgstController, keyboardType: TextInputType.number),
+                            const SizedBox(height: 16),
+                            CustomTextField(label: 'IGST (Integrated Tax) %', hint: '18', controller: controller.igstController, keyboardType: TextInputType.number),
                           ],
-                          const Divider(height: 32),
-                          _buildToggleRow('Enable VAT', 'Apply Value Added Tax', controller.enableVAT),
-                          if (controller.enableVAT.value) ...[const SizedBox(height: 20), CustomTextField(label: 'DEFAULT VAT PERCENTAGE', hint: '5', controller: controller.vatRateController, keyboardType: TextInputType.number)],
                         ],
                       ),
                     ),
@@ -150,20 +195,20 @@ class SettingsView extends GetView<SettingsController> {
       ],
     );
   }
-}
 
-Widget _buildToggleRow(String title, String subtitle, RxBool value) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildSubToggleRow(String title, RxBool value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(title, style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.secondary)),
-          Text(subtitle, style: StyleResource.instance.styleRegular(fontSize: 12, color: AppColors.greyText)),
+          Text(title, style: StyleResource.instance.styleMedium(fontSize: 14, color: AppColors.secondary)),
+          Transform.scale(
+            scale: 0.8,
+            child: Switch(value: value.value, onChanged: (val) => value.value = val, activeColor: AppColors.primary),
+          ),
         ],
       ),
-      Switch(value: value.value, onChanged: (val) => value.value = val, activeColor: AppColors.primary),
-    ],
-  );
+    );
+  }
 }

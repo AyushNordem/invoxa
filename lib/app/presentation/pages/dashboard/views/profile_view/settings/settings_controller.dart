@@ -9,22 +9,51 @@ class SettingsController extends GetxController {
   final isLoading = false.obs;
 
   // Invoice Settings
-  final currency = 'INR - Indian Rupee'.obs;
+  final currency = '₹ INR - Indian Rupee'.obs;
   final invoicePrefix = 'INV-'.obs;
   final financialYear = 'Apr - Mar'.obs;
-
+  
   final prefixController = TextEditingController(text: 'INV-');
+
+  // Units of Measurement
+  final units = <String>[
+    'Piece (pcs)',
+    'Unit',
+    'Item',
+    'Pair',
+    'Set',
+    'Packet',
+    'Inch',
+    'Feet (ft)',
+    'Square Feet (sq ft)'
+  ].obs;
+  final customUnitController = TextEditingController();
 
   // Tax Settings
   final enableGST = true.obs;
-  final gstRate = 18.0.obs;
-  final enableVAT = false.obs;
-  final vatRateController = TextEditingController(text: '5');
+  final cgstController = TextEditingController(text: '9');
+  final sgstController = TextEditingController(text: '9');
+  final igstController = TextEditingController(text: '18');
 
   @override
   void onInit() {
     super.onInit();
     fetchSettings();
+  }
+
+  void addCustomUnit() {
+    final unit = customUnitController.text.trim();
+    if (unit.isNotEmpty && !units.contains(unit)) {
+      units.add(unit);
+      customUnitController.clear();
+      AppSnackbar.showSuccess(title: 'Success', message: 'Custom unit added');
+    }
+  }
+
+  void removeUnit(String unit) {
+    if (units.length > 1) {
+      units.remove(unit);
+    }
   }
 
   Future<void> fetchSettings() async {
@@ -35,13 +64,18 @@ class SettingsController extends GetxController {
         final doc = await FirebaseFirestore.instance.collection('settings').doc(user.uid).get();
         if (doc.exists) {
           final data = doc.data()!;
-          currency.value = data['currency'] ?? 'INR - Indian Rupee';
+          currency.value = data['currency'] ?? '₹ INR - Indian Rupee';
           prefixController.text = data['invoicePrefix'] ?? 'INV-';
           financialYear.value = data['financialYear'] ?? 'Apr - Mar';
+          
+          if (data['units'] != null) {
+            units.value = List<String>.from(data['units']);
+          }
+
           enableGST.value = data['enableGST'] ?? true;
-          gstRate.value = (data['gstRate'] ?? 18.0).toDouble();
-          enableVAT.value = data['enableVAT'] ?? false;
-          vatRateController.text = (data['vatRate'] ?? 5).toString();
+          cgstController.text = (data['cgstRate'] ?? '9').toString();
+          sgstController.text = (data['sgstRate'] ?? '9').toString();
+          igstController.text = (data['igstRate'] ?? '18').toString();
         }
       }
     } catch (e) {
@@ -60,10 +94,11 @@ class SettingsController extends GetxController {
           'currency': currency.value,
           'invoicePrefix': prefixController.text.trim(),
           'financialYear': financialYear.value,
+          'units': units.toList(),
           'enableGST': enableGST.value,
-          'gstRate': gstRate.value,
-          'enableVAT': enableVAT.value,
-          'vatRate': int.tryParse(vatRateController.text) ?? 5,
+          'cgstRate': cgstController.text,
+          'sgstRate': sgstController.text,
+          'igstRate': igstController.text,
           'updatedAt': FieldValue.serverTimestamp(),
         };
 
@@ -80,7 +115,10 @@ class SettingsController extends GetxController {
   @override
   void onClose() {
     prefixController.dispose();
-    vatRateController.dispose();
+    customUnitController.dispose();
+    cgstController.dispose();
+    sgstController.dispose();
+    igstController.dispose();
     super.onClose();
   }
 }
