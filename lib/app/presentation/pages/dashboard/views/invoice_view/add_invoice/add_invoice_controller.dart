@@ -177,7 +177,28 @@ class AddInvoiceController extends GetxController {
     selectedCustomer.value = customer;
   }
 
-  Rx<InvoiceModel> createInvoice = InvoiceModel().obs;
+  InvoiceModel get currentInvoice => InvoiceModel(
+        userId: FirebaseAuth.instance.currentUser?.uid,
+        invoiceNumber: invoiceNumber.value,
+        date: invoiceDate.value,
+        dueDate: dueDate.value,
+        status: 'Pending',
+        sellerDetails: sellerProfile.value,
+        buyerDetails: selectedCustomer.value,
+        items: items.toList(),
+        subTotal: subTotal,
+        discountTotal: discountTotal,
+        taxTotal: taxTotal,
+        grandTotal: grandTotal,
+        hasCGST: hasCGST.value,
+        hasSGST: hasSGST.value,
+        hasIGST: hasIGST.value,
+        taxPercentage: taxPercentage.value,
+        notes: notesController.text,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+
   Future<void> saveInvoice() async {
     try {
       // 1. Validation
@@ -200,32 +221,12 @@ class AddInvoiceController extends GetxController {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
-      // 2. Construct Invoice Model with all current state data
-      createInvoice.value = InvoiceModel(
-        userId: user.uid,
-        invoiceNumber: invoiceNumber.value,
-        date: invoiceDate.value,
-        dueDate: dueDate.value,
-        status: 'Pending',
-        sellerDetails: sellerProfile.value,
-        buyerDetails: selectedCustomer.value,
-        items: items.toList(),
-        subTotal: subTotal,
-        discountTotal: discountTotal,
-        taxTotal: taxTotal,
-        grandTotal: grandTotal,
-        hasCGST: hasCGST.value,
-        hasSGST: hasSGST.value,
-        hasIGST: hasIGST.value,
-        taxPercentage: taxPercentage.value,
-        notes: notesController.text,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
+      // 2. Use the live currentInvoice
+      final invoice = currentInvoice;
 
       // 3. Save to Firebase
-      await FirebaseFirestore.instance.collection('invoices').add(createInvoice.value.toMap());
-      AppSnackbar.showSuccess(title: 'Success', message: 'Invoice ${createInvoice.value.invoiceNumber} saved successfully');
+      await FirebaseFirestore.instance.collection('invoices').add(invoice.toMap());
+      AppSnackbar.showSuccess(title: 'Success', message: 'Invoice ${invoice.invoiceNumber} saved successfully');
 
       // 4. Return success result
       Get.back(result: true);

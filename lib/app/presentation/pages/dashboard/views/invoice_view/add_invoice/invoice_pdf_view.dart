@@ -7,6 +7,9 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import '../../../../../../data/models/business_model.dart';
+import '../../../../../../data/models/customer_model.dart';
+
 /// Drop-in PDF generator.
 /// Usage:
 ///   final bytes = await InvoicePdfGenerator.generate(invoiceModel);
@@ -116,14 +119,14 @@ class InvoicePdfGenerator {
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
       children: [
-        pw.Expanded(child: _partyBox('Consignee (Ship to)', buyer)),
+        pw.Expanded(child: _partyBox('Consignee (Ship to)', buyer ?? CustomerModel())),
         pw.SizedBox(width: 4),
-        pw.Expanded(child: _partyBox('Buyer (Bill to)', buyer)),
+        pw.Expanded(child: _partyBox('Buyer (Bill to)', buyer ?? CustomerModel())),
       ],
     );
   }
 
-  static pw.Widget _partyBox(String title, dynamic party) {
+  static pw.Widget _partyBox(String title, CustomerModel party) {
     // party is CustomerModel
     return _bordered(
       pw.Column(
@@ -139,18 +142,18 @@ class InvoicePdfGenerator {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                _txt(party?.name ?? '-', size: 9, bold: true),
-                if ((party?.address ?? '').isNotEmpty) _txt(party!.address!, size: 8, color: _textMid),
-                if ((party?.city ?? '').isNotEmpty)
+                _txt(party.name ?? '-', size: 9, bold: true),
+                if ((party.address?.street ?? '').isNotEmpty) _txt(party.address?.street ?? "", size: 8, color: _textMid),
+                if ((party.address?.city ?? '').isNotEmpty)
                   _txt(
-                    '${party!.city ?? ''}'
-                    '${party.state != null ? ', ${party.state}' : ''}'
-                    '${party.pinCode != null ? ' - ${party.pinCode}' : ''}',
+                    '${party.address?.city ?? ''}'
+                    '${party.address?.state != null ? ', ${party.address?.state}' : ''}'
+                    '${party.address?.zipCode != null ? ' - ${party.address?.zipCode}' : ''}',
                     size: 8,
                     color: _textMid,
                   ),
-                if ((party?.gstin ?? '').isNotEmpty) _txt('GSTIN/UIN : ${party!.gstin}', size: 8),
-                if ((party?.phone ?? '').isNotEmpty) _txt('Contact : ${party!.phone}', size: 8),
+                if ((party.gstNumber ?? '').isNotEmpty) _txt('GSTIN/UIN : ${party.gstNumber}', size: 8),
+                if ((party?.mobile ?? '').isNotEmpty) _txt('Contact : ${party.mobile}', size: 8),
               ],
             ),
           ),
@@ -329,7 +332,7 @@ class InvoicePdfGenerator {
             ),
           ),
           // Bank Details (only if seller has bank info)
-          if (_hasBankInfo(seller))
+          if (_hasBankInfo(seller ?? BusinessModel()))
             pw.Expanded(
               flex: 3,
               child: pw.Container(
@@ -415,7 +418,7 @@ class InvoicePdfGenerator {
     ),
   );
 
-  static bool _hasBankInfo(dynamic seller) => seller != null && ((seller.bankName ?? '').isNotEmpty || (seller.accountNumber ?? '').isNotEmpty || (seller.ifscCode ?? '').isNotEmpty);
+  static bool _hasBankInfo(BusinessModel seller) => seller != null && ((seller.bankDetails?.bankName ?? '').isNotEmpty || (seller.bankDetails?.accountNumber ?? '').isNotEmpty || (seller.bankDetails?.ifsc ?? '').isNotEmpty);
 
   // ─── Amount in Words (INR) ────────────────────────────────────────────────
 
