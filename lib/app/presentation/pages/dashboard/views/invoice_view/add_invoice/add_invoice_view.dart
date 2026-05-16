@@ -121,7 +121,8 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                 Text(seller?.businessName?.capitalize ?? 'Setting up...', style: StyleResource.instance.styleBold(fontSize: 20, color: AppColors.secondary)),
                 const SizedBox(height: 12),
                 _buildModernInfoRow(Icons.location_on_rounded, '${seller?.address?.street}, ${seller?.address?.city}, ${seller?.address?.state} - ${seller?.address?.pincode}'),
-                _buildModernInfoRow(Icons.description_rounded, 'GST: ${seller?.taxSettings?.gstNumber ?? 'N/A'}'),
+                _buildModernInfoRow(Icons.pin_rounded, 'GSTIN: ${seller?.gstNumber ?? 'N/A'}'),
+                _buildModernInfoRow(Icons.assignment_ind_rounded, 'Tax ID: ${seller?.taxNumber ?? 'N/A'}'),
                 _buildModernInfoRow(Icons.phone_rounded, seller?.mobile ?? 'N/A'),
                 _buildModernInfoRow(Icons.email_rounded, seller?.email ?? 'N/A'),
               ],
@@ -406,6 +407,8 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
   }
 
   Widget _buildTaxToggles() {
+    final settings = controller.appSettings.value?.taxSettings;
+    final taxRates = [5.0, 12.0, 18.0, 28.0];
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(24)),
@@ -414,7 +417,35 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
         children: [
           Text('TAX CONFIGURATION', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1.5)),
           const SizedBox(height: 20),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [_buildModernToggle('CGST', controller.hasCGST), _buildModernToggle('SGST', controller.hasSGST), _buildModernToggle('IGST', controller.hasIGST)]),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [if (settings?.enableCGST ?? true) _buildModernToggle('CGST', controller.hasCGST), if (settings?.enableSGST ?? true) _buildModernToggle('SGST', controller.hasSGST), if (settings?.enableIGST ?? true) _buildModernToggle('IGST', controller.hasIGST)],
+          ),
+          const SizedBox(height: 24),
+          Text('GST RATE (%)', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1.5)),
+          const SizedBox(height: 12),
+          Obx(
+            () => Wrap(
+              spacing: 10,
+              children: taxRates.map((rate) {
+                final isSelected = controller.taxPercentage.value == rate;
+                return GestureDetector(
+                  onTap: () => controller.taxPercentage.value = rate,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSelected ? AppColors.secondary : AppColors.primarySoft.withOpacity(0.3),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: isSelected ? AppColors.secondary : Colors.transparent),
+                    ),
+                    child: Text('${rate.toInt()}%', style: StyleResource.instance.styleBold(fontSize: 13, color: isSelected ? AppColors.white : AppColors.secondary)),
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
         ],
       ),
     );
@@ -423,15 +454,18 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
   Widget _buildModernToggle(String label, RxBool state) {
     return GestureDetector(
       onTap: () => state.value = !state.value,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
-          color: state.value ? AppColors.primary : AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: state.value ? AppColors.primary : AppColors.borderGrey),
+      child: Obx(
+        () => AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+          decoration: BoxDecoration(
+            color: state.value ? AppColors.primary : AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: state.value ? AppColors.primary : AppColors.borderGrey),
+            boxShadow: state.value ? [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 10, offset: const Offset(0, 4))] : null,
+          ),
+          child: Text(label, style: StyleResource.instance.styleBold(fontSize: 13, color: state.value ? AppColors.white : AppColors.secondary)),
         ),
-        child: Text(label, style: StyleResource.instance.styleBold(fontSize: 13, color: state.value ? AppColors.white : AppColors.secondary)),
       ),
     );
   }
@@ -550,31 +584,32 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
     final discountCtrl = TextEditingController(text: item?.discount.toString() ?? '0');
     final hsnCtrl = TextEditingController(text: item?.hsnCode);
 
+    final selectedUnit = (item?.unit ?? (controller.unitTypes.isNotEmpty ? controller.unitTypes.first : 'PCS')).obs;
+
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(15),
         decoration: const BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
         ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  width: 50,
-                  height: 5,
-                  decoration: BoxDecoration(color: AppColors.borderGrey, borderRadius: BorderRadius.circular(10)),
-                ),
-              ),
-              const SizedBox(height: 24),
               Row(
                 children: [
-                  Icon(isEditing ? Icons.edit_document : Icons.add_shopping_cart_rounded, color: AppColors.primary, size: 28),
-                  const SizedBox(width: 12),
-                  Text(isEditing ? 'EDIT PRODUCT' : 'ADD PRODUCT', style: StyleResource.instance.styleBold(fontSize: 24, color: AppColors.secondary)),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Icon(isEditing ? Icons.edit_document : Icons.add_shopping_cart_rounded, color: AppColors.primary, size: 22),
+                        const SizedBox(width: 12),
+                        Text(isEditing ? 'EDIT PRODUCT' : 'ADD PRODUCT', style: StyleResource.instance.styleBold(fontSize: 18, color: AppColors.secondary)),
+                      ],
+                    ),
+                  ),
+                  IconButton(onPressed: () => Get.back(), icon: Icon(Icons.close)),
                 ],
               ),
               const SizedBox(height: 24),
@@ -597,12 +632,44 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
               Row(
                 children: [
                   Expanded(
-                    child: _buildMagicInput('Discount %', discountCtrl, Icons.percent_rounded, type: TextInputType.number, hint: '0'),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Unit Type', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText)),
+                        const SizedBox(height: 8),
+                        Obx(
+                          () => Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(color: AppColors.primarySoft.withOpacity(0.3), borderRadius: BorderRadius.circular(16)),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: selectedUnit.value,
+                                isExpanded: true,
+                                borderRadius: BorderRadius.circular(16),
+                                items: controller.unitTypes
+                                    .map(
+                                      (u) => DropdownMenuItem(
+                                        value: u,
+                                        child: Text(u, style: StyleResource.instance.styleSemiBold(fontSize: 14)),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (v) => selectedUnit.value = v!,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 16),
-                  Expanded(child: _buildMagicInput('HSN Code', hsnCtrl, Icons.qr_code_rounded, hint: '9983')),
+                  Expanded(
+                    child: _buildMagicInput('Discount %', discountCtrl, Icons.percent_rounded, type: TextInputType.number, hint: '0'),
+                  ),
                 ],
               ),
+              const SizedBox(height: 16),
+              _buildMagicInput('HSN Code', hsnCtrl, Icons.qr_code_rounded, hint: '9983'),
               const SizedBox(height: 32),
               Container(
                 width: double.infinity,
@@ -622,7 +689,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                     final disc = double.tryParse(discountCtrl.text) ?? 0.0;
                     final amount = (rate * qty) - (rate * qty * (disc / 100));
 
-                    final newItem = InvoiceItem(name: nameCtrl.text, description: descCtrl.text, rate: rate, quantity: qty, discount: disc, hsnCode: hsnCtrl.text, amount: amount, unit: 'PCS');
+                    final newItem = InvoiceItem(name: nameCtrl.text, description: descCtrl.text, rate: rate, quantity: qty, discount: disc, hsnCode: hsnCtrl.text, amount: amount, unit: selectedUnit.value);
 
                     if (isEditing && index != null) {
                       controller.items[index] = newItem;

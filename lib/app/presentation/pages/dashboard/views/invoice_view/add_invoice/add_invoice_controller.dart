@@ -5,16 +5,18 @@ import 'package:get/get.dart';
 
 import '../../../../../../core/utils/app_constants.dart';
 import '../../../../../../core/utils/app_snackbar.dart';
+import '../../../../../../core/utils/invoice_number_generator.dart';
 import '../../../../../../data/models/business_model.dart';
 import '../../../../../../data/models/customer_model.dart';
 import '../../../../../../data/models/invoice_model.dart';
-import '../../../../../../core/utils/invoice_number_generator.dart';
+import '../../../../../../data/models/setting_model.dart';
 
 class AddInvoiceController extends GetxController {
   final isLoading = false.obs;
 
   // Seller (Business) Profile
   final sellerProfile = Rxn<BusinessModel>();
+  final appSettings = Rxn<SettingModel>();
 
   // Buyer (Customer)
   final selectedCustomer = Rxn<CustomerModel>();
@@ -27,6 +29,7 @@ class AddInvoiceController extends GetxController {
 
   // Items
   final items = <InvoiceItem>[].obs;
+  final unitTypes = <String>[].obs;
 
   // Tax Toggles
   final hasCGST = true.obs;
@@ -54,6 +57,34 @@ class AddInvoiceController extends GetxController {
       final bizDoc = await FirebaseFirestore.instance.collection(AppConstants.collectionBusinesses).doc(user.uid).get();
       if (bizDoc.exists) {
         sellerProfile.value = BusinessModel.fromMap(bizDoc.data()!);
+      }
+
+      // 2. Fetch App Settings (New)
+      final settingsDoc = await FirebaseFirestore.instance.collection('settings').doc(user.uid).get();
+      if (settingsDoc.exists) {
+        final settings = SettingModel.fromMap(settingsDoc.data()!);
+        appSettings.value = settings;
+
+        // Initialize tax toggles from settings
+        if (settings.taxSettings != null) {
+          hasCGST.value = settings.taxSettings?.enableCGST ?? true;
+          hasSGST.value = settings.taxSettings?.enableSGST ?? true;
+          hasIGST.value = settings.taxSettings?.enableIGST ?? false;
+          // Set default tax percentage from settings
+          if (settings.taxSettings?.defaultTax != null) {
+            taxPercentage.value = double.tryParse(settings.taxSettings!.defaultTax!) ?? 18.0;
+          }
+        }
+
+        // Initialize unit types from settings
+        if (settings.unitTypes != null && settings.unitTypes!.isNotEmpty) {
+          unitTypes.value = settings.unitTypes!;
+        } else {
+          unitTypes.value = ['PCS', 'KG', 'NOS', 'MTR', 'BOX', 'UNT', 'SET', 'HRS'];
+        }
+      } else {
+        // Fallback defaults
+        unitTypes.value = ['PCS', 'KG', 'NOS', 'MTR', 'BOX', 'UNT', 'SET', 'HRS'];
       }
 
       // 2. Fetch All Customers for Buyer selection

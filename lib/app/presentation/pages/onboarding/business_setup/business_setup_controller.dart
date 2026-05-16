@@ -56,15 +56,8 @@ class BusinessSetupController extends GetxController {
             branchController.text = businessModel.bankDetails?.branch ?? '';
           }
 
-          if (businessModel.taxSettings != null) {
-            gstController.text = businessModel.taxSettings?.gstNumber ?? '';
-            taxNumberController.text = businessModel.taxSettings?.taxNumber ?? '';
-            currencyValue.value = businessModel.taxSettings?.currency ?? 'INR';
-            defaultTaxController.text = businessModel.taxSettings?.defaultTax ?? '';
-            enableCGST.value = businessModel.taxSettings?.enableCGST ?? true;
-            enableSGST.value = businessModel.taxSettings?.enableSGST ?? true;
-            enableIGST.value = businessModel.taxSettings?.enableIGST ?? false;
-          }
+          gstController.text = businessModel.gstNumber ?? '';
+          taxNumberController.text = businessModel.taxNumber ?? '';
         }
       }
     } catch (e) {
@@ -103,11 +96,6 @@ class BusinessSetupController extends GetxController {
   final formKey4 = GlobalKey<FormState>();
   final gstController = TextEditingController();
   final taxNumberController = TextEditingController();
-  final currencyValue = 'INR'.obs;
-  final defaultTaxController = TextEditingController();
-  final enableCGST = true.obs;
-  final enableSGST = true.obs;
-  final enableIGST = false.obs;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -182,11 +170,12 @@ class BusinessSetupController extends GetxController {
           email: emailController.text.trim(),
           mobile: mobileController.text.trim(),
           website: websiteController.text.trim(),
+          gstNumber: gstController.text.trim(),
+          taxNumber: taxNumberController.text.trim(),
           logoUrl: logoUrl,
           signatureUrl: signatureUrl,
           address: AddressInfo(street: addressController.text.trim(), state: stateValue.value, city: cityController.text.trim(), pincode: pincodeController.text.trim()),
           bankDetails: BankDetails(accountHolder: accountHolderController.text.trim(), bankName: bankNameController.text.trim(), accountNumber: accountNumberController.text.trim(), ifsc: ifscController.text.trim(), branch: branchController.text.trim()),
-          taxSettings: TaxSettings(gstNumber: gstController.text.trim(), taxNumber: taxNumberController.text.trim(), currency: currencyValue.value, defaultTax: defaultTaxController.text.trim(), enableCGST: enableCGST.value, enableSGST: enableSGST.value, enableIGST: enableIGST.value),
         );
 
         // Save to Firestore using toMap()
@@ -252,7 +241,6 @@ class BusinessSetupController extends GetxController {
     branchController.dispose();
     gstController.dispose();
     taxNumberController.dispose();
-    defaultTaxController.dispose();
     super.onClose();
   }
 }

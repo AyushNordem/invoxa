@@ -11,22 +11,11 @@ class SettingsController extends GetxController {
   // Invoice Settings
   final currency = '₹ INR - Indian Rupee'.obs;
   final invoicePrefix = 'INV-'.obs;
-  final financialYear = 'Apr - Mar'.obs;
-  
+
   final prefixController = TextEditingController(text: 'INV-');
 
   // Units of Measurement
-  final units = <String>[
-    'Piece (pcs)',
-    'Unit',
-    'Item',
-    'Pair',
-    'Set',
-    'Packet',
-    'Inch',
-    'Feet (ft)',
-    'Square Feet (sq ft)'
-  ].obs;
+  final units = <String>['Piece (pcs)', 'Unit', 'Item', 'Pair', 'Set', 'Packet', 'Inch', 'Feet (ft)', 'Square Feet (sq ft)'].obs;
   final customUnitController = TextEditingController();
 
   // Tax Settings
@@ -66,12 +55,9 @@ class SettingsController extends GetxController {
           final data = doc.data()!;
           currency.value = data['currency'] ?? '₹ INR - Indian Rupee';
           prefixController.text = data['invoicePrefix'] ?? 'INV-';
-          financialYear.value = data['financialYear'] ?? 'Apr - Mar';
-          
           if (data['units'] != null) {
             units.value = List<String>.from(data['units']);
           }
-
           enableGST.value = data['enableGST'] ?? true;
           cgstController.text = (data['cgstRate'] ?? '9').toString();
           sgstController.text = (data['sgstRate'] ?? '9').toString();
@@ -93,7 +79,6 @@ class SettingsController extends GetxController {
         final settingsData = {
           'currency': currency.value,
           'invoicePrefix': prefixController.text.trim(),
-          'financialYear': financialYear.value,
           'units': units.toList(),
           'enableGST': enableGST.value,
           'cgstRate': cgstController.text,
