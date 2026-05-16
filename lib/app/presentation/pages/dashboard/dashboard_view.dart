@@ -4,6 +4,7 @@ import 'package:invoxa/app/core/theme/app_sizes.dart';
 import 'views/home_view/home_screen.dart';
 import 'views/invoice_view/invoice_screen.dart';
 import 'views/customer_view/customer_screen.dart';
+import 'views/profile_view/profile_screen.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/style_resource.dart';
@@ -17,7 +18,7 @@ class DashboardView extends GetView<DashboardController> {
     return Scaffold(
       backgroundColor: AppColors.backgroundLight,
       body: SafeArea(
-        child: Obx(() => IndexedStack(index: controller.currentIndex.value, children: const [HomeScreen(), InvoiceScreen(), CustomerScreen(), SizedBox()])),
+        child: Obx(() => IndexedStack(index: controller.currentIndex.value, children: const [HomeScreen(), InvoiceScreen(), CustomerScreen(), ProfileScreen()])),
       ),
       bottomNavigationBar: _buildBottomNav(context),
     );

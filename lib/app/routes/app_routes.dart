@@ -10,6 +10,7 @@ abstract class Routes {
   static const ADD_INVOICE = _Paths.ADD_INVOICE;
   static const ADD_PRODUCT = _Paths.ADD_PRODUCT;
   static const ADD_CUSTOMER = _Paths.ADD_CUSTOMER;
+  static const INVOICE_PREVIEW = _Paths.INVOICE_PREVIEW;
 }
 
 abstract class _Paths {
@@ -22,4 +23,5 @@ abstract class _Paths {
   static const ADD_INVOICE = '/add-invoice';
   static const ADD_PRODUCT = '/add-product';
   static const ADD_CUSTOMER = '/add-customer';
+  static const INVOICE_PREVIEW = '/invoice-preview';
 }
