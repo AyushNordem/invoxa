@@ -178,29 +178,37 @@ class AddInvoiceController extends GetxController {
   }
 
   Future<void> saveInvoice() async {
-    if (selectedCustomer.value == null) {
-      AppSnackbar.showError(title: 'Required', message: 'Please select a customer');
-      return;
-    }
-    if (items.isEmpty) {
-      AppSnackbar.showError(title: 'Required', message: 'Please add at least one item');
-      return;
-    }
-
     try {
+      // 1. Validation
+      if (selectedCustomer.value == null) {
+        AppSnackbar.showError(title: 'Customer Required', message: 'Please select a customer to continue');
+        return;
+      }
+
+      if (items.isEmpty) {
+        AppSnackbar.showError(title: 'Items Required', message: 'Please add at least one item');
+        return;
+      }
+
+      if (sellerProfile.value == null) {
+        AppSnackbar.showError(title: 'Profile Missing', message: 'Business profile not loaded');
+        return;
+      }
+
       isButtonLoading.value = true;
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
 
+      // 2. Construct Invoice Model with all current state data
       final invoice = InvoiceModel(
         userId: user.uid,
-        invoiceNumber: invoiceNumberController.text,
+        invoiceNumber: invoiceNumber.value,
         date: invoiceDate.value,
         dueDate: dueDate.value,
         status: 'Pending',
         sellerDetails: sellerProfile.value,
         buyerDetails: selectedCustomer.value,
-        items: items,
+        items: items.toList(),
         subTotal: subTotal,
         discountTotal: discountTotal,
         taxTotal: taxTotal,
@@ -211,13 +219,17 @@ class AddInvoiceController extends GetxController {
         taxPercentage: taxPercentage.value,
         notes: notesController.text,
         createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
       );
 
+      // 3. Save to Firebase
       await FirebaseFirestore.instance.collection('invoices').add(invoice.toMap());
-      AppSnackbar.showSuccess(title: 'Success', message: 'Invoice generated successfully!');
-      Get.back();
+      AppSnackbar.showSuccess(title: 'Success', message: 'Invoice ${invoice.invoiceNumber} saved successfully');
+
+      // 4. Return success result
+      Get.back(result: true);
     } catch (e) {
-      AppSnackbar.showError(title: 'Error', message: 'Failed to save invoice: $e');
+      AppSnackbar.showError(title: 'Save Failed', message: e.toString());
     } finally {
       isButtonLoading.value = false;
     }
