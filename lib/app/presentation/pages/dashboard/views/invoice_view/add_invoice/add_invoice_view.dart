@@ -196,7 +196,13 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                 ),
               ),
               GestureDetector(
-                onTap: () => Get.toNamed(Routes.ADD_CUSTOMER),
+                onTap: () async {
+                  final result = await Get.toNamed(Routes.ADD_CUSTOMER);
+                  if (result != null && result is CustomerModel) {
+                    await controller.fetchInitialData(); // Refresh list
+                    controller.selectCustomer(result); // Select the new one
+                  }
+                },
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(14)),

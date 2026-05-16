@@ -144,16 +144,19 @@ class AddCustomerController extends GetxController {
           updatedAt: DateTime.now(),
         );
 
+        CustomerModel savedCustomer;
         if (isEditing.value && existingCustomer?.id != null) {
           await FirebaseFirestore.instance.collection(AppConstants.collectionCustomers).doc(existingCustomer!.id).update(customer.toMap());
+          savedCustomer = CustomerModel.fromMap(customer.toMap(), id: existingCustomer!.id);
           AppSnackbar.showSuccess(title: 'Success', message: 'Customer updated successfully!');
         } else {
-          await FirebaseFirestore.instance.collection(AppConstants.collectionCustomers).add(customer.toMap());
+          final docRef = await FirebaseFirestore.instance.collection(AppConstants.collectionCustomers).add(customer.toMap());
+          savedCustomer = CustomerModel.fromMap(customer.toMap(), id: docRef.id);
           AppSnackbar.showSuccess(title: 'Success', message: 'Customer added successfully!');
         }
 
         isLoading.value = false;
-        Navigator.of(Get.context!).pop();
+        Get.back(result: savedCustomer);
       } catch (e) {
         isLoading.value = false;
         AppSnackbar.showError(title: 'Error', message: 'Failed to save customer: ${e.toString()}');
