@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:invoxa/app/core/theme/app_sizes.dart';
 import 'package:invoxa/app/presentation/widgets/base_view.dart';
 
 import '../../../../../../core/theme/app_colors.dart';
@@ -33,7 +32,6 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                   _buildBuyerSection(),
                   const SizedBox(height: 32),
                   _buildItemsSection(),
-                  const SizedBox(height: 32),
                   _buildTaxToggles(),
                   const SizedBox(height: 32),
                   _buildMagicTotalsSection(),
@@ -297,37 +295,89 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
               final item = controller.items[index];
               return Container(
                 margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   color: AppColors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.borderGrey.withOpacity(0.5)),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: AppColors.primaryBorder),
                 ),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(item.name ?? '', style: StyleResource.instance.styleBold(fontSize: 15, color: AppColors.secondary)),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 15),
+                        decoration: BoxDecoration(gradient: LinearGradient(colors: [AppColors.primaryLight2, AppColors.white])),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(12)),
+                              child: const Icon(Icons.inventory_2_outlined, color: AppColors.primary, size: 20),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(item.name ?? 'Product Name', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.secondary)),
+                                  if (item.hsnCode != null && item.hsnCode!.isNotEmpty) Text('HSN Code: ${item.hsnCode}', style: StyleResource.instance.styleMedium(fontSize: 11, color: AppColors.greyText)),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              onPressed: () => _showMagicItemDialog(item: item, index: index),
+                              icon: const Icon(Icons.edit_note_rounded, color: AppColors.primary, size: 22),
+                            ),
+                            IconButton(
+                              onPressed: () => controller.removeItem(index),
+                              icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 22),
+                            ),
+                          ],
                         ),
-                        IconButton(
-                          onPressed: () => controller.removeItem(index),
-                          icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent, size: 22),
+                      ),
+                      if (item.description != null && item.description!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 15, right: 15, top: 15),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(item.description!, style: StyleResource.instance.styleMedium(fontSize: 12, color: AppColors.greyText.withOpacity(0.8))),
+                          ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        _buildBadge('Qty: ${item.quantity}', AppColors.secondary),
-                        const SizedBox(width: 8),
-                        _buildBadge('₹${item.rate}', AppColors.primary),
-                        const Spacer(),
-                        Text('₹${item.amount.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.secondary)),
-                      ],
-                    ),
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10, bottom: 15, right: 15, left: 15),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('QTY / RATE', style: StyleResource.instance.styleBold(fontSize: 10, color: AppColors.greyText).copyWith(letterSpacing: 1)),
+                                const SizedBox(height: 4),
+                                Text('${item.quantity} x ₹${item.rate}', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.secondary)),
+                              ],
+                            ),
+                            if (item.discount > 0)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text('DISCOUNT', style: StyleResource.instance.styleBold(fontSize: 10, color: Colors.orange).copyWith(letterSpacing: 1)),
+                                  const SizedBox(height: 4),
+                                  Text('${item.discount}% OFF', style: StyleResource.instance.styleBold(fontSize: 14, color: Colors.orange)),
+                                ],
+                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text('TOTAL AMOUNT', style: StyleResource.instance.styleBold(fontSize: 10, color: AppColors.primary).copyWith(letterSpacing: 1)),
+                                const SizedBox(height: 4),
+                                Text('₹${item.amount.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 18, color: AppColors.primary)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -491,76 +541,73 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
     );
   }
 
-  Widget _buildBadge(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
-      child: Text(text, style: StyleResource.instance.styleBold(fontSize: 11, color: color)),
-    );
-  }
-
-  void _showMagicItemDialog() {
-    final nameCtrl = TextEditingController();
-    final rateCtrl = TextEditingController();
-    final qtyCtrl = TextEditingController(text: '1');
-    final discountCtrl = TextEditingController(text: '0');
-    final hsnCtrl = TextEditingController();
+  void _showMagicItemDialog({InvoiceItem? item, int? index}) {
+    final isEditing = item != null;
+    final nameCtrl = TextEditingController(text: item?.name);
+    final descCtrl = TextEditingController(text: item?.description);
+    final rateCtrl = TextEditingController(text: item?.rate.toString());
+    final qtyCtrl = TextEditingController(text: item?.quantity.toString() ?? '1');
+    final discountCtrl = TextEditingController(text: item?.discount.toString() ?? '0');
+    final hsnCtrl = TextEditingController(text: item?.hsnCode);
 
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+        padding: const EdgeInsets.all(32),
         decoration: const BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(40)),
         ),
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Container(
+                  width: 50,
+                  height: 5,
+                  decoration: BoxDecoration(color: AppColors.borderGrey, borderRadius: BorderRadius.circular(10)),
+                ),
+              ),
+              const SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        const Icon(Icons.add_shopping_cart_rounded, color: AppColors.primary, size: 22),
-                        const SizedBox(width: 12),
-                        Text('ADD PRODUCT', style: StyleResource.instance.styleBold(fontSize: 18, color: AppColors.secondary)),
-                      ],
-                    ),
-                  ),
-                  IconButton(onPressed: () => Get.back(), icon: Icon(Icons.clear)),
+                  Icon(isEditing ? Icons.edit_document : Icons.add_shopping_cart_rounded, color: AppColors.primary, size: 28),
+                  const SizedBox(width: 12),
+                  Text(isEditing ? 'EDIT PRODUCT' : 'ADD PRODUCT', style: StyleResource.instance.styleBold(fontSize: 24, color: AppColors.secondary)),
                 ],
               ),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: 24),
               _buildMagicInput('Product Name', nameCtrl, Icons.shopping_bag_outlined, hint: 'e.g. Website Development'),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: 16),
+              _buildMagicInput('Description (Optional)', descCtrl, Icons.notes_rounded, hint: 'Enter product details...', maxLines: 2),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: _buildMagicInput('Rate/Price', rateCtrl, Icons.payments_outlined, type: TextInputType.number, hint: '0.00'),
                   ),
-                  const SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: _buildMagicInput('Quantity', qtyCtrl, Icons.add_box_outlined, type: TextInputType.number, hint: '1'),
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: _buildMagicInput('Discount %', discountCtrl, Icons.percent_rounded, type: TextInputType.number, hint: '0'),
                   ),
-                  const SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: 16),
                   Expanded(child: _buildMagicInput('HSN Code', hsnCtrl, Icons.qr_code_rounded, hint: '9983')),
                 ],
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: 32),
               Container(
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(18),
                   gradient: const LinearGradient(colors: [AppColors.secondary, AppColors.primary]),
                   boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8))],
                 ),
@@ -575,7 +622,14 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                     final disc = double.tryParse(discountCtrl.text) ?? 0.0;
                     final amount = (rate * qty) - (rate * qty * (disc / 100));
 
-                    controller.addItem(InvoiceItem(name: nameCtrl.text, rate: rate, quantity: qty, discount: disc, hsnCode: hsnCtrl.text, amount: amount, unit: 'PCS'));
+                    final newItem = InvoiceItem(name: nameCtrl.text, description: descCtrl.text, rate: rate, quantity: qty, discount: disc, hsnCode: hsnCtrl.text, amount: amount, unit: 'PCS');
+
+                    if (isEditing && index != null) {
+                      controller.items[index] = newItem;
+                      controller.items.refresh();
+                    } else {
+                      controller.addItem(newItem);
+                    }
                     Get.back();
                   },
                   style: ElevatedButton.styleFrom(
@@ -584,7 +638,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                     padding: const EdgeInsets.symmetric(vertical: 18),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                   ),
-                  child: Text('ADD TO INVOICE', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.white)),
+                  child: Text(isEditing ? 'UPDATE ITEM' : 'ADD TO INVOICE', style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.white)),
                 ),
               ),
               const SizedBox(height: 16),
@@ -596,7 +650,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
     );
   }
 
-  Widget _buildMagicInput(String label, TextEditingController ctrl, IconData icon, {TextInputType type = TextInputType.text, String? hint}) {
+  Widget _buildMagicInput(String label, TextEditingController ctrl, IconData icon, {TextInputType type = TextInputType.text, String? hint, int maxLines = 1}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -605,6 +659,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
         TextField(
           controller: ctrl,
           keyboardType: type,
+          maxLines: maxLines,
           style: StyleResource.instance.styleSemiBold(fontSize: 15),
           decoration: InputDecoration(
             isDense: true,
@@ -618,6 +673,21 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCompactBadge(IconData icon, String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          Text(text, style: StyleResource.instance.styleBold(fontSize: 11, color: color)),
+        ],
+      ),
     );
   }
 
