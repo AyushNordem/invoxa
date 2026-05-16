@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'business_model.dart';
 import 'customer_model.dart';
 
@@ -9,25 +10,24 @@ class InvoiceModel {
   final DateTime? date;
   final DateTime? dueDate;
   final String? status; // 'Paid', 'Pending', 'Draft'
-  
+
   // Snapshots for persistence
   final BusinessModel? sellerDetails;
   final CustomerModel? buyerDetails;
-  
   final List<InvoiceItem>? items;
-  
+
   // Totals
   final double subTotal;
   final double discountTotal;
   final double taxTotal;
   final double grandTotal;
-  
+
   // Tax Flags
   final bool hasCGST;
   final bool hasSGST;
   final bool hasIGST;
   final double taxPercentage;
-  
+
   final String? notes;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -115,40 +115,13 @@ class InvoiceItem {
   final String? hsnCode;
   final double amount;
 
-  InvoiceItem({
-    this.name,
-    this.description,
-    this.rate = 0.0,
-    this.quantity = 1.0,
-    this.unit = 'PCS',
-    this.discount = 0.0,
-    this.hsnCode,
-    this.amount = 0.0,
-  });
+  InvoiceItem({this.name, this.description, this.rate = 0.0, this.quantity = 1.0, this.unit = 'PCS', this.discount = 0.0, this.hsnCode, this.amount = 0.0});
 
   factory InvoiceItem.fromMap(Map<String, dynamic> map) {
-    return InvoiceItem(
-      name: map['name'],
-      description: map['description'],
-      rate: (map['rate'] ?? 0.0).toDouble(),
-      quantity: (map['quantity'] ?? 0.0).toDouble(),
-      unit: map['unit'],
-      discount: (map['discount'] ?? 0.0).toDouble(),
-      hsnCode: map['hsnCode'],
-      amount: (map['amount'] ?? 0.0).toDouble(),
-    );
+    return InvoiceItem(name: map['name'], description: map['description'], rate: (map['rate'] ?? 0.0).toDouble(), quantity: (map['quantity'] ?? 0.0).toDouble(), unit: map['unit'], discount: (map['discount'] ?? 0.0).toDouble(), hsnCode: map['hsnCode'], amount: (map['amount'] ?? 0.0).toDouble());
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'description': description,
-      'rate': rate,
-      'quantity': quantity,
-      'unit': unit,
-      'discount': discount,
-      'hsnCode': hsnCode,
-      'amount': amount,
-    };
+    return {'name': name, 'description': description, 'rate': rate, 'quantity': quantity, 'unit': unit, 'discount': discount, 'hsnCode': hsnCode, 'amount': amount};
   }
 }

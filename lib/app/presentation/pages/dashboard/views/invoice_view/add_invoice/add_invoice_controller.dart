@@ -177,6 +177,7 @@ class AddInvoiceController extends GetxController {
     selectedCustomer.value = customer;
   }
 
+  Rx<InvoiceModel> createInvoice = InvoiceModel().obs;
   Future<void> saveInvoice() async {
     try {
       // 1. Validation
@@ -200,7 +201,7 @@ class AddInvoiceController extends GetxController {
       if (user == null) return;
 
       // 2. Construct Invoice Model with all current state data
-      final invoice = InvoiceModel(
+      createInvoice.value = InvoiceModel(
         userId: user.uid,
         invoiceNumber: invoiceNumber.value,
         date: invoiceDate.value,
@@ -223,8 +224,8 @@ class AddInvoiceController extends GetxController {
       );
 
       // 3. Save to Firebase
-      await FirebaseFirestore.instance.collection('invoices').add(invoice.toMap());
-      AppSnackbar.showSuccess(title: 'Success', message: 'Invoice ${invoice.invoiceNumber} saved successfully');
+      await FirebaseFirestore.instance.collection('invoices').add(createInvoice.value.toMap());
+      AppSnackbar.showSuccess(title: 'Success', message: 'Invoice ${createInvoice.value.invoiceNumber} saved successfully');
 
       // 4. Return success result
       Get.back(result: true);

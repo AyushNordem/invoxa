@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:invoxa/app/core/theme/app_sizes.dart';
 import 'package:invoxa/app/presentation/widgets/base_view.dart';
 import 'package:invoxa/app/presentation/widgets/gradient_button.dart';
+import 'package:pdf/pdf.dart';
+import 'package:printing/printing.dart';
 
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/style_resource.dart';
@@ -12,6 +14,7 @@ import '../../../../../../data/models/customer_model.dart';
 import '../../../../../../data/models/invoice_model.dart';
 import '../../../../../../routes/app_pages.dart';
 import 'add_invoice_controller.dart';
+import 'invoice_pdf_view.dart';
 
 class AddInvoiceView extends GetView<AddInvoiceController> {
   const AddInvoiceView({super.key});
@@ -38,10 +41,278 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                   _buildTaxToggles(),
                   const SizedBox(height: AppSpacing.lg),
                   _buildMagicTotalsSection(),
+                  const SizedBox(height: AppSpacing.lg),
+                  _buildInvoicePreviewSection(),
                   const SizedBox(height: 50),
                 ],
               ),
       ),
+    );
+  }
+
+  Widget _buildInvoicePreviewSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('INVOICE PREVIEW', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1.5)),
+            TextButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.fullscreen_rounded, size: 18),
+              label: Text('FULL SCREEN', style: StyleResource.instance.styleBold(fontSize: 12)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Obx(
+          () => Visibility(
+            visible: controller.items.isNotEmpty && controller.selectedCustomer.value != null,
+            child: SizedBox(
+              height: 500,
+              width: double.infinity,
+              child: PdfPreview(
+                build: (format) => InvoicePdfGenerator.generate(controller.createInvoice.value),
+                allowPrinting: true, // shows print button
+                allowSharing: true, // shows share button
+                canChangePageFormat: false,
+                canChangeOrientation: false,
+                initialPageFormat: PdfPageFormat.a4,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInvoiceLayout() {
+    final seller = controller.sellerProfile.value;
+    final buyer = controller.selectedCustomer.value;
+    final items = controller.items;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Center(
+          child: Text('Tax Invoice', style: StyleResource.instance.styleBold(fontSize: 22, color: Colors.black)),
+        ),
+        const SizedBox(height: 20),
+        Container(
+          decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1)),
+          child: Column(
+            children: [
+              // Header Table
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 6,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          right: BorderSide(color: Colors.black),
+                          bottom: BorderSide(color: Colors.black),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(seller?.businessName?.toUpperCase() ?? 'YOUR BUSINESS NAME', style: StyleResource.instance.styleBold(fontSize: 14)),
+                          Text('${seller?.address?.street}, ${seller?.address?.city}\n${seller?.address?.state}, ${seller?.address?.pincode}', style: const TextStyle(fontSize: 10)),
+                          Text('GSTIN/UIN: ${seller?.gstNumber ?? 'N/A'}', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                          Text('Contact: ${seller?.mobile ?? 'N/A'} | Email: ${seller?.email ?? 'N/A'}', style: const TextStyle(fontSize: 10)),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 4,
+                    child: Column(
+                      children: [_buildPreviewKeyValue('Invoice No.', controller.invoiceNumber.value), _buildPreviewKeyValue('Dated', DateFormat('dd-MMM-yy').format(controller.invoiceDate.value)), _buildPreviewKeyValue('Delivery Note', '-'), _buildPreviewKeyValue('Terms of Payment', 'Immediate')],
+                    ),
+                  ),
+                ],
+              ),
+              // Buyer/Consignee Row
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: const BoxDecoration(
+                        border: Border(
+                          right: BorderSide(color: Colors.black),
+                          bottom: BorderSide(color: Colors.black),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Buyer (Bill to)',
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+                          ),
+                          Text(buyer?.name?.toUpperCase() ?? 'SELECT CUSTOMER', style: StyleResource.instance.styleBold(fontSize: 12)),
+                          Text('${buyer?.address?.street}, ${buyer?.address?.city}\n${buyer?.address?.state}, ${buyer?.address?.zipCode}', style: const TextStyle(fontSize: 10)),
+                          Text('GSTIN/UIN: ${buyer?.gstNumber ?? 'N/A'}', style: const TextStyle(fontSize: 10)),
+                          Text('Contact: ${buyer?.mobile ?? 'N/A'}', style: const TextStyle(fontSize: 10)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              // Items Table Header
+              Container(
+                decoration: const BoxDecoration(
+                  border: Border(bottom: BorderSide(color: Colors.black)),
+                ),
+                child: Row(
+                  children: [
+                    _buildTableCell('Sl No.', flex: 1, isHeader: true),
+                    _buildTableCell('Description of Goods', flex: 6, isHeader: true),
+                    _buildTableCell('HSN/SAC', flex: 2, isHeader: true),
+                    _buildTableCell('Qty', flex: 2, isHeader: true),
+                    _buildTableCell('Rate', flex: 2, isHeader: true),
+                    _buildTableCell('Amount', flex: 3, isHeader: true),
+                  ],
+                ),
+              ),
+              // Items List
+              ...List.generate(items.length, (index) {
+                final item = items[index];
+                return Row(
+                  children: [
+                    _buildTableCell('${index + 1}', flex: 1),
+                    _buildTableCell(item.name ?? '', flex: 6, align: TextAlign.left),
+                    _buildTableCell(item.hsnCode ?? '-', flex: 2),
+                    _buildTableCell('${item.quantity} ${item.unit}', flex: 2),
+                    _buildTableCell(item.rate.toStringAsFixed(2), flex: 2),
+                    _buildTableCell(item.amount.toStringAsFixed(2), flex: 3, align: TextAlign.right),
+                  ],
+                );
+              }),
+              // Empty space to push totals down (for full preview)
+              if (items.isEmpty)
+                Container(
+                  height: 100,
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: BorderSide(color: Colors.black)),
+                  ),
+                ),
+              // Tax Rows
+              if (controller.hasCGST.value) _buildTaxPreviewRow('CGST', controller.cgstAmount),
+              if (controller.hasSGST.value) _buildTaxPreviewRow('SGST', controller.sgstAmount),
+              if (controller.hasIGST.value) _buildTaxPreviewRow('IGST', controller.igstAmount),
+              // Total Row
+              Container(
+                decoration: const BoxDecoration(
+                  border: Border(top: BorderSide(color: Colors.black)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 11,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        alignment: Alignment.centerRight,
+                        child: const Text('Total', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    _buildTableCell('₹${controller.grandTotal.toStringAsFixed(2)}', flex: 3, align: TextAlign.right, isHeader: true),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text('Amount Chargeable (in words):', style: StyleResource.instance.styleMedium(fontSize: 10)),
+        Text('INR ${controller.grandTotal.toInt().toString()} Only', style: StyleResource.instance.styleBold(fontSize: 11)),
+        const SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Bank Details:',
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, decoration: TextDecoration.underline),
+                ),
+                Text('Bank: ${seller?.bankDetails?.bankName ?? 'N/A'}', style: const TextStyle(fontSize: 9)),
+                Text('A/c No: ${seller?.bankDetails?.accountNumber ?? 'N/A'}', style: const TextStyle(fontSize: 9)),
+                Text('IFSC: ${seller?.bankDetails?.ifsc ?? 'N/A'}', style: const TextStyle(fontSize: 9)),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text('for ${seller?.businessName?.toUpperCase() ?? 'YOUR BUSINESS'}', style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 30),
+                const Text('Authorised Signatory', style: TextStyle(fontSize: 9)),
+              ],
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        const Center(child: Text('This is a Computer Generated Invoice', style: TextStyle(fontSize: 8))),
+      ],
+    );
+  }
+
+  Widget _buildPreviewKeyValue(String key, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: const BoxDecoration(
+        border: Border(
+          left: BorderSide(color: Colors.black),
+          bottom: BorderSide(color: Colors.black),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: Text(key, style: const TextStyle(fontSize: 8))),
+          Text(value, style: const TextStyle(fontSize: 8, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTableCell(String text, {int flex = 1, bool isHeader = false, TextAlign align = TextAlign.center}) {
+    return Expanded(
+      flex: flex,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: const BoxDecoration(
+          border: Border(right: BorderSide(color: Colors.black)),
+        ),
+        child: Text(
+          text,
+          textAlign: align,
+          style: TextStyle(fontSize: 9, fontWeight: isHeader ? FontWeight.bold : FontWeight.normal),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTaxPreviewRow(String label, double amount) {
+    return Row(
+      children: [
+        Expanded(
+          flex: 11,
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            alignment: Alignment.centerRight,
+            child: Text(label, style: const TextStyle(fontSize: 9, fontStyle: FontStyle.italic)),
+          ),
+        ),
+        _buildTableCell(amount.toStringAsFixed(2), flex: 3, align: TextAlign.right),
+      ],
     );
   }
 
