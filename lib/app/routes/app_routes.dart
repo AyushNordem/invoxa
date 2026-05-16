@@ -12,6 +12,7 @@ abstract class Routes {
   static const ADD_CUSTOMER = _Paths.ADD_CUSTOMER;
   static const INVOICE_PREVIEW = _Paths.INVOICE_PREVIEW;
   static const UPDATE_PASSWORD = _Paths.UPDATE_PASSWORD;
+  static const SETTINGS = _Paths.SETTINGS;
 }
 
 abstract class _Paths {
@@ -26,4 +27,5 @@ abstract class _Paths {
   static const ADD_CUSTOMER = '/add-customer';
   static const INVOICE_PREVIEW = '/invoice-preview';
   static const UPDATE_PASSWORD = '/update-password';
+  static const SETTINGS = '/settings';
 }

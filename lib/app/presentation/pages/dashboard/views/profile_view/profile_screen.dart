@@ -134,7 +134,7 @@ class ProfileScreen extends GetView<ProfileController> {
         children: [
           _buildMenuItem(Icons.business_outlined, 'Business Information', onTap: () => Get.toNamed(Routes.BUSINESS_SETUP, arguments: {'isEditing': true})),
           _buildMenuItem(Icons.lock_outline, 'Update Password', onTap: () => Get.toNamed(Routes.UPDATE_PASSWORD)),
-          _buildMenuItem(Icons.settings_outlined, 'Settings'),
+          _buildMenuItem(Icons.settings_outlined, 'Settings', onTap: () => Get.toNamed(Routes.SETTINGS)),
           _buildMenuItem(Icons.shield_outlined, 'Privacy Policy'),
           _buildMenuItem(Icons.description_outlined, 'Terms & Conditions'),
           _buildMenuItem(Icons.help_outline, 'Help & Support', isLast: true),

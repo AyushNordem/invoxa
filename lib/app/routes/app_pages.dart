@@ -19,6 +19,8 @@ import '../presentation/pages/dashboard/views/invoice_view/invoice_preview/invoi
 import '../presentation/pages/dashboard/views/invoice_view/invoice_preview/invoice_preview_view.dart';
 import '../presentation/pages/dashboard/views/profile_view/update_password/update_password_binding.dart';
 import '../presentation/pages/dashboard/views/profile_view/update_password/update_password_view.dart';
+import '../presentation/pages/dashboard/views/profile_view/settings/settings_binding.dart';
+import '../presentation/pages/dashboard/views/profile_view/settings/settings_view.dart';
 import '../presentation/pages/splash/splash_binding.dart';
 import '../presentation/pages/splash/splash_view.dart';
 
@@ -40,5 +42,6 @@ class AppPages {
     GetPage(name: _Paths.ADD_CUSTOMER, page: () => const AddCustomerView(), binding: AddCustomerBinding()),
     GetPage(name: _Paths.INVOICE_PREVIEW, page: () => const InvoicePreviewView(), binding: InvoicePreviewBinding()),
     GetPage(name: _Paths.UPDATE_PASSWORD, page: () => const UpdatePasswordView(), binding: UpdatePasswordBinding()),
+    GetPage(name: _Paths.SETTINGS, page: () => const SettingsView(), binding: SettingsBinding()),
   ];
 }
