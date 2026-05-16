@@ -27,16 +27,42 @@ class ProfileController extends GetxController {
       isLoading.value = true;
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final doc = await FirebaseFirestore.instance.collection(AppConstants.collectionUsers).doc(user.uid).get();
-        if (doc.exists) {
-          userName.value = doc.data()?['fullName'] ?? 'User';
+        // Fetch User basic info
+        final userDoc = await FirebaseFirestore.instance.collection(AppConstants.collectionUsers).doc(user.uid).get();
+        if (userDoc.exists) {
+          final data = userDoc.data()!;
+          userName.value = data['fullName'] ?? 'User';
+          // Consolidating businessName into users collection as per previous request
+          businessName.value = data['businessName'] ?? 'Business Name';
         }
 
-        // Fetch business details if available
+        // Fetch Business specific details
         final businessDoc = await FirebaseFirestore.instance.collection(AppConstants.collectionBusinesses).doc(user.uid).get();
         if (businessDoc.exists) {
-          businessName.value = businessDoc.data()?['businessName'] ?? 'Business Name';
+          final data = businessDoc.data()!;
+          businessType.value = data['businessType'] ?? 'Professional Services';
+          
+          final city = data['city'] ?? '';
+          final state = data['state'] ?? '';
+          if (city.isNotEmpty && state.isNotEmpty) {
+            location.value = '$city, $state';
+          } else {
+            location.value = 'Location not set';
+          }
         }
+
+        // Fetch Dynamic Counts
+        final invoicesSnapshot = await FirebaseFirestore.instance
+            .collection('invoices')
+            .where('userId', isEqualTo: user.uid)
+            .get();
+        activeInvoices.value = invoicesSnapshot.docs.length;
+
+        final customersSnapshot = await FirebaseFirestore.instance
+            .collection('customers')
+            .where('userId', isEqualTo: user.uid)
+            .get();
+        customers.value = customersSnapshot.docs.length;
       }
     } catch (e) {
       print('Error fetching profile data: $e');
