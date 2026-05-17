@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:invoxa/app/presentation/widgets/base_view.dart';
+import 'package:invoxa/app/presentation/widgets/log_print_condition.dart';
 
 import '../../../../../../core/theme/app_colors.dart';
 import '../../../../../../core/theme/app_sizes.dart';
@@ -457,48 +458,66 @@ class InvoicePreviewView extends GetView<InvoicePreviewController> {
         color: AppColors.white,
         boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 15, offset: const Offset(0, -6))],
       ),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           if (statusUpper != 'PAID') ...[
-            Expanded(
-              flex: 2,
-              child: OutlinedButton.icon(
-                onPressed: () => controller.markAsPaid(),
-                icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: const Text('Mark Paid'),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFF10B981),
-                  side: const BorderSide(color: Color(0xFF10B981)),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            OutlinedButton.icon(
+              onPressed: () => controller.markAsPaid(),
+              icon: const Icon(Icons.check_circle_outline, size: 18),
+              label: const Text('Mark Paid'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF10B981),
+                side: const BorderSide(color: const Color(0xFF10B981)),
+                minimumSize: const Size(double.infinity, 46),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    logPrint(invoice.pdfUrl);
+                    Get.to(() => InvoicePreviewScreen(invoice: invoice));
+                  },
+                  icon: const Icon(Icons.visibility_rounded, size: 18),
+                  label: const Text('View Invoice'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-          ],
-          Expanded(
-            flex: 3,
-            child: ElevatedButton.icon(
-              onPressed: () => controller.downloadInvoice(),
-              icon: const Icon(Icons.download_outlined, size: 18),
-              label: const Text('Download PDF'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                elevation: 0,
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => controller.downloadInvoice(),
+                  icon: const Icon(Icons.download_outlined, size: 18),
+                  label: const Text('Download PDF'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: AppColors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                ),
               ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          InkWell(
-            onTap: () => controller.shareInvoice(),
-            child: Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(color: AppColors.secondary.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.ios_share, color: AppColors.secondary, size: 20),
-            ),
+              const SizedBox(width: 12),
+              InkWell(
+                onTap: () => controller.shareInvoice(),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(color: AppColors.secondary.withOpacity(0.08), borderRadius: BorderRadius.circular(12)),
+                  child: const Icon(Icons.ios_share, color: AppColors.secondary, size: 20),
+                ),
+              ),
+            ],
           ),
         ],
       ),
