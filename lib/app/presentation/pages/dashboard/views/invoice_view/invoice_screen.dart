@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:invoxa/app/presentation/widgets/base_view.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_sizes.dart';
@@ -12,28 +13,9 @@ class InvoiceScreen extends GetView<InvoiceController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.backgroundLight,
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: AppSpacing.screenPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: AppSpacing.md),
-            _buildAppBar(),
-            const SizedBox(height: AppSpacing.lg),
-            _buildSearchBar(),
-            const SizedBox(height: AppSpacing.lg),
-            _buildSummaryCard(),
-            const SizedBox(height: AppSpacing.xl),
-            _buildInvoicesHeader(),
-            const SizedBox(height: AppSpacing.md),
-            _buildInvoicesList(),
-            const SizedBox(height: AppSpacing.xxl),
-          ],
-        ),
-      ),
+    return BaseView(
+      title: "Invoice",
+      showBackButton: false,
       floatingActionButton: FloatingActionButton(
         onPressed: () => Get.toNamed(Routes.ADD_INVOICE),
         backgroundColor: AppColors.primary,
@@ -41,61 +23,68 @@ class InvoiceScreen extends GetView<InvoiceController> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: const Icon(Icons.add, color: AppColors.white, size: 28),
       ),
-    );
-  }
-
-  Widget _buildAppBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const CircleAvatar(radius: 20, backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=alex')),
-        Text('Invoxa', style: StyleResource.instance.styleBold(fontSize: 20, color: AppColors.primary)),
-        const Icon(Icons.search, color: AppColors.secondary, size: 24),
-      ],
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        padding: AppSpacing.screenPadding,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: AppSpacing.md),
+            _buildSummaryCard(),
+            const SizedBox(height: AppSpacing.md),
+            _buildSearchBar(),
+            const SizedBox(height: AppSpacing.md),
+            _buildInvoicesHeader(),
+            const SizedBox(height: AppSpacing.md),
+            _buildInvoicesList(),
+            const SizedBox(height: AppSpacing.md),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildSearchBar() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            height: 50,
-            decoration: BoxDecoration(color: AppColors.borderGrey.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
-            child: Row(
-              children: [
-                const Icon(Icons.search, color: AppColors.greyText, size: 20),
-                const SizedBox(width: 12),
-                Text('Search invoices...', style: StyleResource.instance.styleRegular(fontSize: 14, color: AppColors.greyText)),
-              ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      height: 56,
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.search, color: AppColors.primary, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              // controller: controller.searchController,
+              decoration: InputDecoration(
+                hintText: 'Search by name or phone...',
+                hintStyle: StyleResource.instance.styleRegular(fontSize: 14, color: AppColors.greyText),
+                border: InputBorder.none,
+              ),
+              style: StyleResource.instance.styleMedium(fontSize: 15, color: AppColors.black),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        _buildIconButton(Icons.tune),
-        const SizedBox(width: 12),
-        _buildIconButton(Icons.sort),
-      ],
-    );
-  }
-
-  Widget _buildIconButton(IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: AppColors.borderGrey.withOpacity(0.2), borderRadius: BorderRadius.circular(12)),
-      child: Icon(icon, color: AppColors.secondary, size: 20),
+          // Obx(
+          //       () => controller.searchQuery.value.isNotEmpty
+          //       ? IconButton(
+          //     icon: const Icon(Icons.close, color: AppColors.greyText, size: 18),
+          //     onPressed: () => controller.searchController.clear(),
+          //   )
+          //       : const SizedBox.shrink(),
+          // ),
+        ],
+      ),
     );
   }
 
   Widget _buildSummaryCard() {
     return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: AppRadius.card,
-        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
-      ),
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(color: AppColors.primary, borderRadius: AppRadius.card),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -106,31 +95,7 @@ class InvoiceScreen extends GetView<InvoiceController> {
               Icon(Icons.account_balance_wallet_outlined, color: AppColors.white.withOpacity(0.8), size: 24),
             ],
           ),
-          const SizedBox(height: 8),
-          Text('\$42,850.00', style: StyleResource.instance.styleBold(fontSize: 28, color: AppColors.white)),
-          const SizedBox(height: 24),
-          Row(
-            children: [
-              Expanded(child: _buildSubSummary('PAID', '\$38.2k')),
-              const SizedBox(width: 16),
-              Expanded(child: _buildSubSummary('PENDING', '\$4.6k')),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSubSummary(String label, String amount) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: AppColors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(12)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: StyleResource.instance.styleBold(fontSize: 10, color: AppColors.white.withOpacity(0.7))),
-          const SizedBox(height: 4),
-          Text(amount, style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.white)),
+          Text('\$42,850.00', style: StyleResource.instance.styleBold(fontSize: 26, color: AppColors.white)),
         ],
       ),
     );
