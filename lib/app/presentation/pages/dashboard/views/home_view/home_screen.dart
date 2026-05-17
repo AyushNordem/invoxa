@@ -26,36 +26,38 @@ class HomeScreen extends GetView<HomeController> {
             boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4))],
             gradient: LinearGradient(colors: [AppColors.primaryLight, AppColors.white], begin: Alignment.centerLeft, end: Alignment.centerRight),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(controller.getGreeting(), style: StyleResource.instance.styleMedium(fontSize: 13, color: AppColors.greyText)),
-                    Text(
-                      controller.userName.value,
-                      style: StyleResource.instance.styleBold(fontSize: 22, color: AppColors.black),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+          child: Obx(
+            () => Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(controller.getGreeting(), style: StyleResource.instance.styleMedium(fontSize: 13, color: AppColors.greyText)),
+                      Text(
+                        controller.userName.value,
+                        style: StyleResource.instance.styleBold(fontSize: 22, color: AppColors.black),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(20)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
-                    const SizedBox(width: 4),
-                    Text('PREMIUM USER', style: StyleResource.instance.styleBold(fontSize: 9, color: AppColors.primary)),
-                  ],
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(20)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
+                      const SizedBox(width: 4),
+                      Text('PREMIUM USER', style: StyleResource.instance.styleBold(fontSize: 9, color: AppColors.primary)),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -80,7 +82,7 @@ class HomeScreen extends GetView<HomeController> {
               const SizedBox(height: 12),
               _buildRecentActivityList(),
               const SizedBox(height: 20),
-              _buildPromoBanner(),
+              _buildBusinessDetailsCard(),
               const SizedBox(height: 24),
             ],
           ),
@@ -209,97 +211,111 @@ class HomeScreen extends GetView<HomeController> {
   }
 
   Widget _buildBillingGrowthCard() {
-    return Container(
-      padding: AppSpacing.cardPadding,
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: AppRadius.card,
-        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('BILLING GROWTH', style: StyleResource.instance.styleSemiBold(fontSize: 12, color: AppColors.greyText)),
-                  const SizedBox(height: 2),
-                  Text('Last 6 Months Trend', style: StyleResource.instance.styleRegular(fontSize: 11, color: AppColors.greyText.withOpacity(0.7))),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(20)),
-                child: Row(
+    return Obx(() {
+      final spots = controller.chartSpots;
+      final months = controller.chartMonths;
+      final growth = controller.billingGrowth.value;
+
+      final isPositive = growth >= 0;
+      final growthColor = isPositive ? AppColors.primary : const Color(0xFFEF4444);
+      final growthBg = isPositive ? AppColors.primarySoft : const Color(0xFFFEF2F2);
+      final growthIcon = isPositive ? Icons.trending_up : Icons.trending_down;
+
+      // Calculate maxY dynamically with a nice safety ceiling
+      double maxY = 100.0;
+      for (var spot in spots) {
+        if (spot.y > maxY) maxY = spot.y;
+      }
+      maxY = maxY == 0 ? 100.0 : maxY * 1.2; // 20% margin for breathing room
+
+      return Container(
+        padding: AppSpacing.cardPadding,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: AppRadius.card,
+          boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+          border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.trending_up, color: AppColors.primary, size: 12),
-                    const SizedBox(width: 4),
-                    Text('+12%', style: StyleResource.instance.styleBold(fontSize: 11, color: AppColors.primary)),
+                    Text('BILLING GROWTH', style: StyleResource.instance.styleSemiBold(fontSize: 12, color: AppColors.greyText)),
+                    const SizedBox(height: 2),
+                    Text('Last 6 Months Trend', style: StyleResource.instance.styleRegular(fontSize: 11, color: AppColors.greyText.withOpacity(0.7))),
+                  ],
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: growthBg, borderRadius: BorderRadius.circular(20)),
+                  child: Row(
+                    children: [
+                      Icon(growthIcon, color: growthColor, size: 12),
+                      const SizedBox(width: 4),
+                      Text('${isPositive ? "+" : ""}${growth.toStringAsFixed(0)}%', style: StyleResource.instance.styleBold(fontSize: 11, color: growthColor)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 140,
+              child: LineChart(
+                LineChartData(
+                  minY: 0,
+                  maxY: maxY,
+                  gridData: const FlGridData(show: false),
+                  titlesData: FlTitlesData(
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 22,
+                        interval: 1,
+                        getTitlesWidget: (value, meta) {
+                          const style = TextStyle(color: AppColors.greyText, fontSize: 9, fontWeight: FontWeight.w500);
+                          final index = value.toInt();
+                          if (index >= 0 && index < months.length) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 6.0),
+                              child: Text(months[index], style: style),
+                            );
+                          }
+                          return const Text('');
+                        },
+                      ),
+                    ),
+                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: spots.isNotEmpty ? spots : const [FlSpot(0, 0), FlSpot(1, 0), FlSpot(2, 0), FlSpot(3, 0), FlSpot(4, 0), FlSpot(5, 0)],
+                      isCurved: true,
+                      color: AppColors.primary,
+                      barWidth: 3,
+                      isStrokeCapRound: true,
+                      dotData: const FlDotData(show: false),
+                      belowBarData: BarAreaData(
+                        show: true,
+                        gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.2), AppColors.primary.withOpacity(0.0)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            height: 140,
-            child: LineChart(
-              LineChartData(
-                gridData: const FlGridData(show: false),
-                titlesData: FlTitlesData(
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 22,
-                      getTitlesWidget: (value, meta) {
-                        const style = TextStyle(color: AppColors.greyText, fontSize: 9, fontWeight: FontWeight.w500);
-                        switch (value.toInt()) {
-                          case 0:
-                            return const Text('JUL', style: style);
-                          case 2:
-                            return const Text('AUG', style: style);
-                          case 4:
-                            return const Text('SEP', style: style);
-                          case 6:
-                            return const Text('OCT', style: style);
-                          case 8:
-                            return const Text('NOV', style: style);
-                          case 10:
-                            return const Text('DEC', style: style);
-                        }
-                        return const Text('');
-                      },
-                    ),
-                  ),
-                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                borderData: FlBorderData(show: false),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: const [FlSpot(0, 1), FlSpot(2, 1.5), FlSpot(4, 1.2), FlSpot(6, 2), FlSpot(8, 2.2), FlSpot(10, 3)],
-                    isCurved: true,
-                    color: AppColors.primary,
-                    barWidth: 3,
-                    isStrokeCapRound: true,
-                    dotData: const FlDotData(show: false),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.2), AppColors.primary.withOpacity(0.0)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
-                    ),
-                  ),
-                ],
-              ),
             ),
-          ),
-        ],
-      ),
-    );
+          ],
+        ),
+      );
+    });
   }
 
   Widget _buildRecentActivityHeader() {
@@ -441,7 +457,7 @@ class HomeScreen extends GetView<HomeController> {
     });
   }
 
-  Widget _buildPromoBanner() {
+  Widget _buildBusinessDetailsCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -453,19 +469,39 @@ class HomeScreen extends GetView<HomeController> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Automate your\nfinances', style: StyleResource.instance.styleBold(fontSize: 20, color: AppColors.white)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Business Details',
+                style: StyleResource.instance.styleBold(fontSize: 20, color: AppColors.white),
+              ),
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: AppColors.white.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.business_rounded, color: AppColors.white, size: 18),
+              ),
+            ],
+          ),
           const SizedBox(height: 8),
-          Text('Connect your bank account to sync transactions instantly with Invoxa Magic Sync.', style: StyleResource.instance.styleRegular(fontSize: 12, color: AppColors.white.withOpacity(0.9))),
+          Text(
+            'Keep your invoices legal and professional. Update your company branding, GSTIN, address, or banking details easily at any time.',
+            style: StyleResource.instance.styleRegular(fontSize: 12, color: AppColors.white.withOpacity(0.9)),
+          ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () => Get.toNamed(Routes.BUSINESS_SETUP),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.white,
               foregroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              elevation: 0,
             ),
-            child: Text('Get Started', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.primary)),
+            child: Text('Update Now', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.primary)),
           ),
         ],
       ),
