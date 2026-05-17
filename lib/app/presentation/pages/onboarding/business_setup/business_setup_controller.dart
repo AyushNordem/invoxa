@@ -43,7 +43,7 @@ class BusinessSetupController extends GetxController {
 
           if (businessModel.address != null) {
             addressController.text = businessModel.address?.street ?? '';
-            stateValue.value = businessModel.address?.state ?? "";
+            stateController.text = businessModel.address?.state ?? '';
             cityController.text = businessModel.address?.city ?? '';
             pincodeController.text = businessModel.address?.pincode ?? '';
           }
@@ -80,7 +80,7 @@ class BusinessSetupController extends GetxController {
   // Step 2: Address Details
   final formKey2 = GlobalKey<FormState>();
   final addressController = TextEditingController();
-  final stateValue = RxnString();
+  final stateController = TextEditingController();
   final cityController = TextEditingController();
   final pincodeController = TextEditingController();
 
@@ -145,6 +145,10 @@ class BusinessSetupController extends GetxController {
         AppSnackbar.showError(title: 'Validation', message: 'Please upload your business logo.');
         return;
       }
+      if (signaturePath.value.isEmpty) {
+        AppSnackbar.showError(title: 'Validation', message: 'Please upload your digital signature.');
+        return;
+      }
       isLoading.value = true;
       try {
         String? logoUrl;
@@ -174,7 +178,7 @@ class BusinessSetupController extends GetxController {
           taxNumber: taxNumberController.text.trim(),
           logoUrl: logoUrl,
           signatureUrl: signatureUrl,
-          address: AddressInfo(street: addressController.text.trim(), state: stateValue.value, city: cityController.text.trim(), pincode: pincodeController.text.trim()),
+          address: AddressInfo(street: addressController.text.trim(), state: stateController.text.trim(), city: cityController.text.trim(), pincode: pincodeController.text.trim()),
           bankDetails: BankDetails(accountHolder: accountHolderController.text.trim(), bankName: bankNameController.text.trim(), accountNumber: accountNumberController.text.trim(), ifsc: ifscController.text.trim(), branch: branchController.text.trim()),
         );
 
@@ -211,9 +215,8 @@ class BusinessSetupController extends GetxController {
   }
 
   String? validateGST(String? value) {
-    if (value == null || value.isEmpty) return null; // Optional but if provided should be valid? Actually user might want it required.
-    // Basic GST format: 22AAAAA0000A1Z5
-    if (value.isNotEmpty && value.length != 15) return 'GST number must be 15 characters';
+    if (value == null || value.trim().isEmpty) return 'GST number is required';
+    if (value.trim().length != 15) return 'GST number must be 15 characters';
     return null;
   }
 
@@ -232,6 +235,7 @@ class BusinessSetupController extends GetxController {
     mobileController.dispose();
     websiteController.dispose();
     addressController.dispose();
+    stateController.dispose();
     cityController.dispose();
     pincodeController.dispose();
     accountHolderController.dispose();

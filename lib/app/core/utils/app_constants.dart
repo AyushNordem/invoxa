@@ -5,7 +5,7 @@ class AppConstants {
   // Cloudinary
   static const String cloudinaryCloudName = 'dz4ryea9h';
   static const String cloudinaryApiKey = 'PztPf3uTb5CHhARJTVVS28xfig4';
-  static const String cloudinaryUploadPreset = 'ml_default'; // Default preset, user might need to change this
+  static const String cloudinaryUploadPreset = 'invoxa_images'; // Default preset, user might need to change this
   static const String cloudinaryUploadPdfPreset = 'invoxa_pdf'; // Default preset, user might need to change this
 
   // Firestore Collections

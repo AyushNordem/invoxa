@@ -18,18 +18,24 @@ class CloudinaryService {
         ..files.add(await http.MultipartFile.fromPath('file', filePath));
 
       final response = await request.send();
+      final responseData = await response.stream.toBytes();
+      final responseString = String.fromCharCodes(responseData);
+
       if (response.statusCode == 200) {
-        final responseData = await response.stream.toBytes();
-        final responseString = String.fromCharCodes(responseData);
         final jsonResponse = jsonDecode(responseString);
         return jsonResponse['secure_url'];
       } else {
-        logPrint('Cloudinary upload failed: ${response.statusCode}');
-        return null;
+        logPrint('Cloudinary upload failed: ${response.statusCode} - $responseString');
+        String errorMsg = 'Upload failed (${response.statusCode})';
+        try {
+          final errorJson = jsonDecode(responseString);
+          errorMsg = errorJson['error']?['message'] ?? errorMsg;
+        } catch (_) {}
+        throw Exception('Cloudinary error: $errorMsg');
       }
     } catch (e) {
       logPrint('Cloudinary upload error: $e');
-      return null;
+      rethrow;
     }
   }
 
@@ -48,7 +54,6 @@ class CloudinaryService {
         ..files.add(http.MultipartFile.fromBytes('file', pdfBytes, filename: filename));
 
       final response = await request.send();
-
       final responseData = await response.stream.toBytes();
       final responseString = String.fromCharCodes(responseData);
 
@@ -58,12 +63,17 @@ class CloudinaryService {
         final jsonResponse = jsonDecode(responseString);
         return jsonResponse['secure_url'];
       } else {
-        logPrint('Cloudinary PDF upload failed: ${response.statusCode}');
-        return null;
+        logPrint('Cloudinary PDF upload failed: ${response.statusCode} - $responseString');
+        String errorMsg = 'PDF upload failed (${response.statusCode})';
+        try {
+          final errorJson = jsonDecode(responseString);
+          errorMsg = errorJson['error']?['message'] ?? errorMsg;
+        } catch (_) {}
+        throw Exception('Cloudinary error: $errorMsg');
       }
     } catch (e) {
       logPrint('Cloudinary PDF upload error: $e');
-      return null;
+      rethrow;
     }
   }
 }
