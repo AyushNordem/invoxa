@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:invoxa/app/presentation/widgets/base_view.dart';
 
@@ -48,6 +49,9 @@ class SignUpView extends GetView<SignUpController> {
                         keyboardType: TextInputType.phone,
                         controller: controller.mobileController,
                         validator: controller.validateMobile,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-()\s]')),
+                        ],
                         suffixIcon: const Icon(Icons.phone_iphone, color: AppColors.borderGrey),
                       ),
                       const SizedBox(height: AppSpacing.md),

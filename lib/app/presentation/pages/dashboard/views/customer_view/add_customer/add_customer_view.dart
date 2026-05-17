@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:invoxa/app/core/theme/app_sizes.dart';
 import 'package:invoxa/app/presentation/widgets/base_view.dart';
@@ -35,9 +36,28 @@ class AddCustomerView extends GetView<AddCustomerController> {
                 const SizedBox(height: AppSpacing.md),
                 CustomTextField(label: 'Email Address (Optional)', controller: controller.emailController, hint: 'name@company.com', validator: controller.validateEmail),
                 const SizedBox(height: AppSpacing.md),
-                CustomTextField(label: 'Phone Number', controller: controller.phoneController, hint: '+1 (555) 000-0000', validator: controller.validatePhone, keyboardType: TextInputType.phone),
+                CustomTextField(
+                  label: 'Phone Number',
+                  controller: controller.phoneController,
+                  hint: '+1 (555) 000-0000',
+                  validator: controller.validatePhone,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-()\s]')),
+                  ],
+                ),
                 const SizedBox(height: AppSpacing.md),
-                CustomTextField(label: 'GSTIN (Optional)', controller: controller.gstinController, hint: '22AAAAA0000A1Z5', validator: controller.validateGST),
+                CustomTextField(
+                  label: 'GSTIN (Optional)',
+                  controller: controller.gstinController,
+                  hint: '22AAAAA0000A1Z5',
+                  validator: controller.validateGST,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                    LengthLimitingTextInputFormatter(15),
+                    TextInputFormatter.withFunction((old, val) => TextEditingValue(text: val.text.toUpperCase(), selection: val.selection)),
+                  ],
+                ),
                 const SizedBox(height: AppRadius.lg),
                 Row(
                   children: [
@@ -53,7 +73,17 @@ class AddCustomerView extends GetView<AddCustomerController> {
                 const SizedBox(height: AppSpacing.md),
                 CustomTextField(label: 'State', controller: controller.stateController, hint: 'State', validator: (v) => controller.validateRequired(v, 'State')),
                 const SizedBox(height: AppSpacing.md),
-                CustomTextField(label: 'ZIP Code (Optional)', controller: controller.zipController, hint: '10001', validator: controller.validateZip, keyboardType: TextInputType.number),
+                CustomTextField(
+                  label: 'ZIP Code (Optional)',
+                  controller: controller.zipController,
+                  hint: '10001',
+                  validator: controller.validateZip,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(6),
+                  ],
+                ),
                 const SizedBox(height: AppRadius.xxl),
               ],
             ),

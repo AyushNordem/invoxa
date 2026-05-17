@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_sizes.dart';
@@ -13,9 +14,10 @@ class CustomTextField extends StatelessWidget {
   final TextEditingController controller;
   final TextInputType keyboardType;
   final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
   final bool readOnly;
 
-  const CustomTextField({super.key, required this.label, required this.hint, this.prefixIcon, this.suffixIcon, this.isPassword = false, required this.controller, this.keyboardType = TextInputType.text, this.validator, this.readOnly = false});
+  const CustomTextField({super.key, required this.label, required this.hint, this.prefixIcon, this.suffixIcon, this.isPassword = false, required this.controller, this.keyboardType = TextInputType.text, this.validator, this.inputFormatters, this.readOnly = false});
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +31,7 @@ class CustomTextField extends StatelessWidget {
           obscureText: isPassword,
           keyboardType: keyboardType,
           validator: validator,
+          inputFormatters: inputFormatters,
           readOnly: readOnly,
           obscuringCharacter: '●',
           style: StyleResource.instance.styleRegular(color: AppColors.black),

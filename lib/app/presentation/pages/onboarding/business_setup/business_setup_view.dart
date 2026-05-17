@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:invoxa/app/presentation/widgets/base_view.dart';
 
@@ -42,13 +43,42 @@ class BusinessSetupView extends GetView<BusinessSetupController> {
                     const SizedBox(height: AppSpacing.md),
                     CustomTextField(label: 'Owner Name', hint: 'John Doe', controller: controller.ownerNameController, validator: (v) => controller.validateRequired(v, 'Owner Name')),
                     const SizedBox(height: AppSpacing.md),
-                    CustomTextField(label: 'GST Number', hint: '22AAAAA0000A1Z5', controller: controller.gstController, validator: controller.validateGST),
+                     CustomTextField(
+                      label: 'GST Number',
+                      hint: '22AAAAA0000A1Z5',
+                      controller: controller.gstController,
+                      validator: controller.validateGST,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                        LengthLimitingTextInputFormatter(15),
+                        TextInputFormatter.withFunction((old, val) => TextEditingValue(text: val.text.toUpperCase(), selection: val.selection)),
+                      ],
+                    ),
                     const SizedBox(height: AppSpacing.md),
-                    CustomTextField(label: 'Tax Number (PAN/EIN)', hint: 'ABCDE1234F', controller: controller.taxNumberController, validator: (v) => controller.validateRequired(v, 'Tax Number')),
+                    CustomTextField(
+                      label: 'Tax Number (PAN/EIN)',
+                      hint: 'ABCDE1234F',
+                      controller: controller.taxNumberController,
+                      validator: (v) => controller.validateRequired(v, 'Tax Number'),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                        LengthLimitingTextInputFormatter(10),
+                        TextInputFormatter.withFunction((old, val) => TextEditingValue(text: val.text.toUpperCase(), selection: val.selection)),
+                      ],
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     CustomTextField(label: 'Business Email', hint: 'contact@business.com', controller: controller.emailController, keyboardType: TextInputType.emailAddress, validator: controller.validateEmail),
                     const SizedBox(height: AppSpacing.md),
-                    CustomTextField(label: 'Phone Number', hint: '+1 (555) 000-0000', controller: controller.mobileController, keyboardType: TextInputType.phone, validator: controller.validatePhone),
+                    CustomTextField(
+                      label: 'Phone Number',
+                      hint: '+1 (555) 000-0000',
+                      controller: controller.mobileController,
+                      keyboardType: TextInputType.phone,
+                      validator: controller.validatePhone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-()\s]')),
+                      ],
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     CustomTextField(label: 'Business Address', hint: 'Street, Building, Suite...', controller: controller.addressController, validator: (v) => controller.validateRequired(v, 'Address')),
                     const SizedBox(height: AppSpacing.md),
@@ -56,7 +86,17 @@ class BusinessSetupView extends GetView<BusinessSetupController> {
                     const SizedBox(height: AppSpacing.md),
                     CustomTextField(label: 'State / Province', hint: 'Select State', controller: controller.stateController, validator: (v) => controller.validateRequired(v, 'State')),
                     const SizedBox(height: AppSpacing.md),
-                    CustomTextField(label: 'Pincode / Zip', hint: '000000', controller: controller.pincodeController, keyboardType: TextInputType.number, validator: controller.validatePincode),
+                    CustomTextField(
+                      label: 'Pincode / Zip',
+                      hint: '000000',
+                      controller: controller.pincodeController,
+                      keyboardType: TextInputType.number,
+                      validator: controller.validatePincode,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(6),
+                      ],
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     CustomTextField(label: 'Website (Optional)', hint: 'www.yourbusiness.com', controller: controller.websiteController, keyboardType: TextInputType.url),
                   ],
@@ -72,9 +112,29 @@ class BusinessSetupView extends GetView<BusinessSetupController> {
                     const SizedBox(height: AppSpacing.md),
                     CustomTextField(label: 'Branch Name', hint: 'Downtown Branch', controller: controller.branchController, validator: (v) => controller.validateRequired(v, 'Branch Name')),
                     const SizedBox(height: AppSpacing.md),
-                    CustomTextField(label: 'Account Number', hint: '**** **** **** 1234', controller: controller.accountNumberController, keyboardType: TextInputType.number, validator: (v) => controller.validateRequired(v, 'Account Number')),
+                     CustomTextField(
+                      label: 'Account Number',
+                      hint: '**** **** **** 1234',
+                      controller: controller.accountNumberController,
+                      keyboardType: TextInputType.number,
+                      validator: (v) => controller.validateRequired(v, 'Account Number'),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(18),
+                      ],
+                    ),
                     const SizedBox(height: AppSpacing.md),
-                    CustomTextField(label: 'IFSC / SWIFT Code', hint: 'CTB0001234', controller: controller.ifscController, validator: (v) => controller.validateRequired(v, 'IFSC Code')),
+                    CustomTextField(
+                      label: 'IFSC / SWIFT Code',
+                      hint: 'CTB0001234',
+                      controller: controller.ifscController,
+                      validator: (v) => controller.validateRequired(v, 'IFSC Code'),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                        LengthLimitingTextInputFormatter(11),
+                        TextInputFormatter.withFunction((old, val) => TextEditingValue(text: val.text.toUpperCase(), selection: val.selection)),
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xl),

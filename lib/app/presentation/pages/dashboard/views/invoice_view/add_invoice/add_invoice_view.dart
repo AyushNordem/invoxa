@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:invoxa/app/core/theme/app_sizes.dart';
@@ -604,11 +605,29 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
               Row(
                 children: [
                   Expanded(
-                    child: _buildMagicInput('Rate/Price', rateCtrl, Icons.payments_outlined, type: TextInputType.number, hint: '0.00'),
+                    child: _buildMagicInput(
+                      'Rate/Price',
+                      rateCtrl,
+                      Icons.payments_outlined,
+                      type: const TextInputType.numberWithOptions(decimal: true),
+                      hint: '0.00',
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildMagicInput('Quantity', qtyCtrl, Icons.add_box_outlined, type: TextInputType.number, hint: '1'),
+                    child: _buildMagicInput(
+                      'Quantity',
+                      qtyCtrl,
+                      Icons.add_box_outlined,
+                      type: const TextInputType.numberWithOptions(decimal: true),
+                      hint: '1',
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -648,12 +667,30 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: _buildMagicInput('Discount %', discountCtrl, Icons.percent_rounded, type: TextInputType.number, hint: '0'),
+                    child: _buildMagicInput(
+                      'Discount %',
+                      discountCtrl,
+                      Icons.percent_rounded,
+                      type: const TextInputType.numberWithOptions(decimal: true),
+                      hint: '0',
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                      ],
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 16),
-              _buildMagicInput('HSN Code', hsnCtrl, Icons.qr_code_rounded, hint: '9983'),
+              _buildMagicInput(
+                'HSN Code',
+                hsnCtrl,
+                Icons.qr_code_rounded,
+                hint: '9983',
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(8),
+                ],
+              ),
               const SizedBox(height: 32),
               Container(
                 width: double.infinity,
@@ -701,7 +738,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
     );
   }
 
-  Widget _buildMagicInput(String label, TextEditingController ctrl, IconData icon, {TextInputType type = TextInputType.text, String? hint, int maxLines = 1}) {
+  Widget _buildMagicInput(String label, TextEditingController ctrl, IconData icon, {TextInputType type = TextInputType.text, String? hint, int maxLines = 1, List<TextInputFormatter>? inputFormatters}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -711,6 +748,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
           controller: ctrl,
           keyboardType: type,
           maxLines: maxLines,
+          inputFormatters: inputFormatters,
           style: StyleResource.instance.styleSemiBold(fontSize: 15),
           decoration: InputDecoration(
             isDense: true,
