@@ -1,11 +1,14 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:invoxa/app/presentation/widgets/base_view.dart';
 
 import '../../../../../../res/assets_res.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_sizes.dart';
 import '../../../../../core/theme/style_resource.dart';
+import '../../../../../routes/app_pages.dart';
 import 'home_controller.dart';
 
 class HomeScreen extends GetView<HomeController> {
@@ -13,58 +16,194 @@ class HomeScreen extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      padding: AppSpacing.screenPadding,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return BaseView(
+      appBar: PreferredSize(
+        preferredSize: Size(double.infinity, 50 + MediaQuery.of(context).padding.top),
+        child: Container(
+          padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top + 10, left: 15, right: 15, bottom: 10),
+          alignment: Alignment.bottomCenter,
+          decoration: BoxDecoration(
+            boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.01), blurRadius: 10, offset: const Offset(0, 4))],
+            gradient: LinearGradient(colors: [AppColors.primaryLight, AppColors.white], begin: Alignment.centerLeft, end: Alignment.centerRight),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(controller.getGreeting(), style: StyleResource.instance.styleMedium(fontSize: 13, color: AppColors.greyText)),
+                    Text(
+                      controller.userName.value,
+                      style: StyleResource.instance.styleBold(fontSize: 22, color: AppColors.black),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(20)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.star_rounded, color: Colors.amber, size: 14),
+                    const SizedBox(width: 4),
+                    Text('PREMIUM USER', style: StyleResource.instance.styleBold(fontSize: 9, color: AppColors.primary)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      child: Obx(() {
+        if (controller.isLoading.value && controller.allInvoices.isEmpty) {
+          return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+        }
+
+        return SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSummaryRow(),
+              const SizedBox(height: 20),
+              _buildQuickActions(),
+              const SizedBox(height: 24),
+              _buildBillingGrowthCard(),
+              const SizedBox(height: 24),
+              _buildRecentActivityHeader(),
+              const SizedBox(height: 12),
+              _buildRecentActivityList(),
+              const SizedBox(height: 20),
+              _buildPromoBanner(),
+              const SizedBox(height: 24),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildSummaryRow() {
+    return Obx(
+      () => Row(
         children: [
-          const SizedBox(height: AppSpacing.md),
-          _buildAppBar(),
-          const SizedBox(height: AppSpacing.lg),
-          _buildGreeting(),
-          const SizedBox(height: AppSpacing.lg),
-          _buildBillingGrowthCard(),
-          const SizedBox(height: AppSpacing.lg),
-          _buildSummaryRow(),
-          const SizedBox(height: AppSpacing.lg),
-          _buildQuickActions(),
-          const SizedBox(height: AppSpacing.lg),
-          _buildRecentActivityHeader(),
-          const SizedBox(height: AppSpacing.sm),
-          _buildRecentActivityList(),
-          const SizedBox(height: AppSpacing.lg),
-          _buildPromoBanner(),
-          const SizedBox(height: AppSpacing.xxl),
+          Expanded(
+            child: _buildSummaryCard(title: 'TOTAL REVENUE (PAID)', value: '₹${controller.paidAmount.value.toStringAsFixed(2)}', trend: '+${controller.billingGrowth.value.toStringAsFixed(0)}%', hasTrendIcon: true),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildSummaryCard(title: 'PENDING COLLECTIONS', value: '₹${controller.pendingAmount.value.toStringAsFixed(2)}', subtitle: '${controller.allInvoices.where((i) => (i.status ?? "").toUpperCase() == "PENDING").length} waiting invoices'),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildAppBar() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const CircleAvatar(radius: 20, backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=alex')),
-        Text('Invoxa', style: StyleResource.instance.styleBold(fontSize: 20, color: AppColors.primary)),
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            shape: BoxShape.circle,
-            boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.05), blurRadius: 10, spreadRadius: 0)],
+  Widget _buildSummaryCard({required String title, required String value, String? trend, String? subtitle, bool hasTrendIcon = false}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: AppRadius.card,
+        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: StyleResource.instance.styleSemiBold(fontSize: 9, color: AppColors.greyText),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              if (hasTrendIcon) const Icon(Icons.trending_up, color: AppColors.primary, size: 14),
+            ],
           ),
-          child: const Icon(Icons.notifications_none, color: AppColors.secondary, size: 24),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: StyleResource.instance.styleBold(fontSize: 16, color: AppColors.secondary),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 8),
+          if (trend != null)
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: const LinearProgressIndicator(value: 0.75, backgroundColor: AppColors.borderGrey, color: AppColors.primary, minHeight: 4),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(trend, style: StyleResource.instance.styleBold(fontSize: 10, color: AppColors.primary)),
+              ],
+            ),
+          if (subtitle != null)
+            Text(
+              subtitle,
+              style: StyleResource.instance.styleRegular(fontSize: 10, color: AppColors.greyText),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('QUICK ACTIONS', style: StyleResource.instance.styleSemiBold(fontSize: 12, color: AppColors.greyText)),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionButton(icon: Icons.note_add_outlined, label: 'New Invoice', isPrimary: true, onTap: () => Get.toNamed(Routes.ADD_INVOICE)),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionButton(icon: Icons.person_add_outlined, label: 'Add Client', isPrimary: false, onTap: () => Get.toNamed(Routes.ADD_CUSTOMER)),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildGreeting() {
-    return Obx(
-      () => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [Text('${controller.getGreeting()}, ${controller.userName.value}', style: StyleResource.instance.styleBold(fontSize: 24, color: AppColors.secondary))],
+  Widget _buildActionButton({required IconData icon, required String label, required bool isPrimary, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: AppRadius.card,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: isPrimary ? AppColors.primary : AppColors.white,
+          borderRadius: AppRadius.card,
+          boxShadow: [BoxShadow(color: (isPrimary ? AppColors.primary : AppColors.black).withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4))],
+          border: isPrimary ? null : Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: isPrimary ? AppColors.white : AppColors.secondary, size: 18),
+            const SizedBox(width: 8),
+            Text(label, style: StyleResource.instance.styleSemiBold(fontSize: 13, color: isPrimary ? AppColors.white : AppColors.secondary)),
+          ],
+        ),
       ),
     );
   }
@@ -75,7 +214,8 @@ class HomeScreen extends GetView<HomeController> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: AppRadius.card,
-        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10))],
+        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+        border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +227,8 @@ class HomeScreen extends GetView<HomeController> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('BILLING GROWTH', style: StyleResource.instance.styleSemiBold(fontSize: 12, color: AppColors.greyText)),
-                  Text('Last 6 Months', style: StyleResource.instance.styleRegular(fontSize: 12, color: AppColors.greyText.withOpacity(0.7))),
+                  const SizedBox(height: 2),
+                  Text('Last 6 Months Trend', style: StyleResource.instance.styleRegular(fontSize: 11, color: AppColors.greyText.withOpacity(0.7))),
                 ],
               ),
               Container(
@@ -95,17 +236,17 @@ class HomeScreen extends GetView<HomeController> {
                 decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(20)),
                 child: Row(
                   children: [
-                    const Icon(Icons.trending_up, color: AppColors.primary, size: 14),
+                    const Icon(Icons.trending_up, color: AppColors.primary, size: 12),
                     const SizedBox(width: 4),
-                    Text('+12%', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.primary)),
+                    Text('+12%', style: StyleResource.instance.styleBold(fontSize: 11, color: AppColors.primary)),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: 16),
           SizedBox(
-            height: 150,
+            height: 140,
             child: LineChart(
               LineChartData(
                 gridData: const FlGridData(show: false),
@@ -115,7 +256,7 @@ class HomeScreen extends GetView<HomeController> {
                       showTitles: true,
                       reservedSize: 22,
                       getTitlesWidget: (value, meta) {
-                        const style = TextStyle(color: AppColors.greyText, fontSize: 10);
+                        const style = TextStyle(color: AppColors.greyText, fontSize: 9, fontWeight: FontWeight.w500);
                         switch (value.toInt()) {
                           case 0:
                             return const Text('JUL', style: style);
@@ -149,7 +290,7 @@ class HomeScreen extends GetView<HomeController> {
                     dotData: const FlDotData(show: false),
                     belowBarData: BarAreaData(
                       show: true,
-                      gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.3), AppColors.primary.withOpacity(0.0)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
+                      gradient: LinearGradient(colors: [AppColors.primary.withOpacity(0.2), AppColors.primary.withOpacity(0.0)], begin: Alignment.topCenter, end: Alignment.bottomCenter),
                     ),
                   ),
                 ],
@@ -161,178 +302,153 @@ class HomeScreen extends GetView<HomeController> {
     );
   }
 
-  Widget _buildSummaryRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSummaryCard(title: 'TOTAL REVENUE', value: '\$42,850', trend: '+12%', hasTrendIcon: true),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: _buildSummaryCard(title: 'PENDING', value: '\$12,400', subtitle: '8 invoices awaiting'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSummaryCard({required String title, required String value, String? trend, String? subtitle, bool hasTrendIcon = false}) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: AppRadius.card,
-        boxShadow: [BoxShadow(color: AppColors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(title, style: StyleResource.instance.styleSemiBold(fontSize: 10, color: AppColors.greyText)),
-              if (hasTrendIcon) const Icon(Icons.trending_up, color: AppColors.primary, size: 14),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(value, style: StyleResource.instance.styleBold(fontSize: 18, color: AppColors.secondary)),
-          const SizedBox(height: 8),
-          if (trend != null)
-            Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(2),
-                    child: LinearProgressIndicator(value: 0.7, backgroundColor: AppColors.borderGrey, color: AppColors.primary, minHeight: 4),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(trend, style: StyleResource.instance.styleBold(fontSize: 10, color: AppColors.primary)),
-              ],
-            ),
-          if (subtitle != null) Text(subtitle, style: StyleResource.instance.styleRegular(fontSize: 10, color: AppColors.greyText)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuickActions() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('QUICK ACTIONS', style: StyleResource.instance.styleSemiBold(fontSize: 12, color: AppColors.greyText)),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Expanded(
-              child: _buildActionButton(icon: Icons.note_add_outlined, label: 'New Invoice', isPrimary: true),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: _buildActionButton(icon: Icons.person_add_outlined, label: 'Add Client', isPrimary: false),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActionButton({required IconData icon, required String label, required bool isPrimary}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: isPrimary ? AppColors.primary : AppColors.white,
-        borderRadius: AppRadius.card,
-        boxShadow: [BoxShadow(color: (isPrimary ? AppColors.primary : AppColors.black).withOpacity(0.1), blurRadius: 15, offset: const Offset(0, 5))],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: isPrimary ? AppColors.white : AppColors.secondary, size: 20),
-          const SizedBox(width: 8),
-          Text(label, style: StyleResource.instance.styleSemiBold(fontSize: 14, color: isPrimary ? AppColors.white : AppColors.secondary)),
-        ],
-      ),
-    );
-  }
-
   Widget _buildRecentActivityHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text('RECENT INVOICE', style: StyleResource.instance.styleSemiBold(fontSize: 12, color: AppColors.greyText)),
-        Text('View All', style: StyleResource.instance.styleSemiBold(fontSize: 12, color: AppColors.primary)),
+        Text('RECENT ACTIVITY', style: StyleResource.instance.styleSemiBold(fontSize: 12, color: AppColors.greyText)),
+        Text('Real-time Updates', style: StyleResource.instance.styleSemiBold(fontSize: 11, color: AppColors.primary)),
       ],
     );
   }
 
   Widget _buildRecentActivityList() {
-    return Obx(
-      () => Column(
-        children: controller.recentActivities.map((activity) => _buildActivityItem(name: activity['name'], id: activity['id'], amount: activity['amount'], status: activity['status'])).toList(),
-      ),
-    );
-  }
-
-  Widget _buildActivityItem({required String name, required String id, required double amount, required String status}) {
-    Color statusColor;
-    Color bgColor;
-    if (status == 'PAID') {
-      statusColor = const Color(0xFF10B981);
-      bgColor = const Color(0xFFD1FAE5);
-    } else if (status == 'PENDING') {
-      statusColor = const Color(0xFFF59E0B);
-      bgColor = const Color(0xFFFEF3C7);
-    } else {
-      statusColor = const Color(0xFFEF4444);
-      bgColor = const Color(0xFFFEE2E2);
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: AppColors.white, borderRadius: AppRadius.card),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(10)),
-            child: const Icon(Icons.description_outlined, color: AppColors.primary, size: 20),
+    return Obx(() {
+      if (controller.recentInvoices.isEmpty) {
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: AppRadius.card,
+            border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
           ),
-          const SizedBox(width: 12),
-          Expanded(
+          child: Center(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: StyleResource.instance.styleSemiBold(fontSize: 14, color: AppColors.secondary)),
-                Text(id, style: StyleResource.instance.styleRegular(fontSize: 12, color: AppColors.greyText)),
+                Icon(Icons.description_outlined, size: 40, color: AppColors.greyText.withOpacity(0.4)),
+                const SizedBox(height: 8),
+                Text('No Invoices Yet', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.secondary)),
+                const SizedBox(height: 4),
+                Text('Create an invoice to get started!', style: StyleResource.instance.styleRegular(fontSize: 12, color: AppColors.greyText)),
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text('\$${amount.toStringAsFixed(2)}', style: StyleResource.instance.styleSemiBold(fontSize: 14, color: AppColors.secondary)),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(4)),
-                child: Text(status, style: StyleResource.instance.styleBold(fontSize: 10, color: statusColor)),
+        );
+      }
+
+      return Column(
+        children: controller.recentInvoices.map((invoice) {
+          final status = invoice.status ?? 'Pending';
+          final statusUpper = status.toUpperCase();
+          Color statusColor;
+          Color bgColor;
+          IconData statusIcon;
+
+          if (statusUpper == 'PAID') {
+            statusColor = const Color(0xFF10B981);
+            bgColor = const Color(0xFFE6F4EA);
+            statusIcon = Icons.check_circle_rounded;
+          } else if (statusUpper == 'PENDING') {
+            statusColor = const Color(0xFFF59E0B);
+            bgColor = const Color(0xFFFFF7ED);
+            statusIcon = Icons.schedule_rounded;
+          } else {
+            statusColor = const Color(0xFFEF4444);
+            bgColor = const Color(0xFFFEF2F2);
+            statusIcon = Icons.error_outline_rounded;
+          }
+
+          final dateStr = invoice.date != null ? DateFormat('dd MMM yyyy').format(invoice.date!) : '-';
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 10),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFF1F5F9), width: 1.2),
+              boxShadow: [BoxShadow(color: const Color(0xff0f172a).withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                decoration: BoxDecoration(
+                  border: Border(left: BorderSide(color: statusColor, width: 4)),
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Get.toNamed(Routes.INVOICE_PREVIEW, arguments: invoice),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      child: Row(
+                        children: [
+                          // Left Section: Customer Info & Metadata
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  invoice.buyerDetails?.name ?? 'Unknown Customer',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: StyleResource.instance.styleBold(fontSize: 14, color: const Color(0xFF1E293B)),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Text(invoice.invoiceNumber ?? 'INV-XXXX', style: StyleResource.instance.styleSemiBold(fontSize: 11, color: const Color(0xFF64748B))),
+                                    const SizedBox(width: 6),
+                                    const Icon(Icons.fiber_manual_record, size: 4, color: Color(0xFFCBD5E1)),
+                                    const SizedBox(width: 6),
+                                    Text(dateStr, style: StyleResource.instance.styleMedium(fontSize: 11, color: const Color(0xFF64748B))),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Right Section: Amount & Status Badge
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('₹${invoice.grandTotal.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 15, color: AppColors.primary)),
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(20)),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(statusIcon, size: 10, color: statusColor),
+                                    const SizedBox(width: 3),
+                                    Text(status, style: StyleResource.instance.styleBold(fontSize: 9, color: statusColor)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ],
-          ),
-        ],
-      ),
-    );
+            ),
+          );
+        }).toList(),
+      );
+    });
   }
 
   Widget _buildPromoBanner() {
     return Container(
       width: double.infinity,
-
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         image: const DecorationImage(image: AssetImage(AssetsRes.SECTION___PROMOTIONAL_MAGIC_CARD), fit: BoxFit.fill),
         borderRadius: AppRadius.card,
+        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.1), blurRadius: 10, offset: const Offset(0, 4))],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
