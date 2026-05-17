@@ -284,22 +284,91 @@ class InvoicePdfGenerator {
 
         // Calculations Table (Physically attached beneath with zero padding/gap)
         pw.Table(
-          columnWidths: colWidths,
+          columnWidths: <int, pw.TableColumnWidth>{
+            0: const pw.FlexColumnWidth(0.6), // Sl No
+            1: const pw.FlexColumnWidth(3.4), // Description
+            2: const pw.FlexColumnWidth(0.9), // HSN/SAC
+            3: const pw.FlexColumnWidth(0.7), // Qty
+            4: const pw.FlexColumnWidth(0.7), // Unit
+            5: const pw.FlexColumnWidth(1.8), // Rate + Disc% merged (Spacious label!)
+            6: const pw.FlexColumnWidth(1.3), // Amount aligned
+          },
           children: [
             // Sub Total Row
-            pw.TableRow(children: [pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), calcCell('Sub Total', bold: true, isLeftBorder: true), calcCell('INR ${_money.format(inv.subTotal)}', isAmount: true)]),
+            pw.TableRow(
+              children: [
+                pw.Container(),
+                pw.Container(),
+                pw.Container(),
+                pw.Container(),
+                pw.Container(),
+                calcCell('Sub Total', bold: true, isLeftBorder: true),
+                calcCell('INR ${_money.format(inv.subTotal)}', isAmount: true),
+              ],
+            ),
             // Discount Row
-            if (inv.discountTotal > 0) pw.TableRow(children: [pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), calcCell('Discount', bold: true, isLeftBorder: true), calcCell('- INR ${_money.format(inv.discountTotal)}', isAmount: true)]),
+            if (inv.discountTotal > 0)
+              pw.TableRow(
+                children: [
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  calcCell('Discount', bold: true, isLeftBorder: true),
+                  calcCell('- INR ${_money.format(inv.discountTotal)}', isAmount: true),
+                ],
+              ),
             // CGST Row
-            if (showCGST) pw.TableRow(children: [pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), calcCell('CGST (${taxPerItem.toStringAsFixed(1)}%)', bold: true, isLeftBorder: true), calcCell('INR ${_money.format(inv.taxTotal / 2)}', isAmount: true)]),
+            if (showCGST)
+              pw.TableRow(
+                children: [
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  calcCell('CGST (${taxPerItem.toStringAsFixed(1)}%)', bold: true, isLeftBorder: true),
+                  calcCell('INR ${_money.format(inv.taxTotal / 2)}', isAmount: true),
+                ],
+              ),
             // SGST Row
-            if (showSGST) pw.TableRow(children: [pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), calcCell('SGST (${taxPerItem.toStringAsFixed(1)}%)', bold: true, isLeftBorder: true), calcCell('INR ${_money.format(inv.taxTotal / 2)}', isAmount: true)]),
+            if (showSGST)
+              pw.TableRow(
+                children: [
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  calcCell('SGST (${taxPerItem.toStringAsFixed(1)}%)', bold: true, isLeftBorder: true),
+                  calcCell('INR ${_money.format(inv.taxTotal / 2)}', isAmount: true),
+                ],
+              ),
             // IGST Row
             if (showIGST)
-              pw.TableRow(children: [pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), calcCell('IGST (${inv.taxPercentage.toStringAsFixed(1)}%)', bold: true, isLeftBorder: true), calcCell('INR ${_money.format(inv.taxTotal)}', isAmount: true)]),
+              pw.TableRow(
+                children: [
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  pw.Container(),
+                  calcCell('IGST (${inv.taxPercentage.toStringAsFixed(1)}%)', bold: true, isLeftBorder: true),
+                  calcCell('INR ${_money.format(inv.taxTotal)}', isAmount: true),
+                ],
+              ),
             // Grand Total Row
             pw.TableRow(
-              children: [pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), pw.Container(), calcCell('Grand Total', bold: true, isLeftBorder: true, isBottomBorder: true), calcCell('INR ${_money.format(inv.grandTotal)}', bold: true, isAmount: true, isBottomBorder: true)],
+              children: [
+                pw.Container(),
+                pw.Container(),
+                pw.Container(),
+                pw.Container(),
+                pw.Container(),
+                calcCell('Grand Total', bold: true, isLeftBorder: true, isBottomBorder: true),
+                calcCell('INR ${_money.format(inv.grandTotal)}', bold: true, isAmount: true, isBottomBorder: true),
+              ],
             ),
           ],
         ),
