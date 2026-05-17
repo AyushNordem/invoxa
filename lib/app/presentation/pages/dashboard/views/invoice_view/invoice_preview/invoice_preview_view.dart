@@ -35,7 +35,7 @@ class InvoicePreviewView extends GetView<InvoicePreviewController> {
             children: [
               SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 16.0, bottom: 100.0),
+                padding: const EdgeInsets.only(top: 15.0, bottom: 20.0),
                 child: Column(children: [_buildInvoiceCard(invoice), const SizedBox(height: 16), _buildProTip(invoice), const SizedBox(height: 32)]),
               ),
               if (controller.isLoading.value)
