@@ -104,9 +104,17 @@ class InvoicePdfGenerator {
     return null;
   }
 
+  static pw.Font? _fontRegular;
+  static pw.Font? _fontBold;
+
   // ── Public API ────────────────────────────────────────────────────────────
   static Future<Uint8List> generate(InvoiceModel invoice) async {
     final pdf = pw.Document();
+
+    try {
+      _fontRegular = await PdfGoogleFonts.robotoRegular();
+      _fontBold = await PdfGoogleFonts.robotoBold();
+    } catch (_) {}
 
     pw.ImageProvider? signatureImage;
     pw.ImageProvider? logoImage;
@@ -397,11 +405,11 @@ class InvoicePdfGenerator {
                       ],
                     ),
                   ),
-                  _totRow('Sub Total', 'INR ${_money.format(inv.subTotal)}'),
-                  if (inv.discountTotal > 0) _totRow('Discount', '- INR ${_money.format(inv.discountTotal)}', valueColor: _red),
-                  if (showCGST) _totRow('CGST (${taxPer.toStringAsFixed(1)}%)', 'INR ${_money.format(half)}'),
-                  if (showSGST) _totRow('SGST (${taxPer.toStringAsFixed(1)}%)', 'INR ${_money.format(half)}'),
-                  if (showIGST) _totRow('IGST (${inv.taxPercentage.toStringAsFixed(1)}%)', 'INR ${_money.format(inv.taxTotal)}'),
+                  _totRow('Sub Total', '₹ ${_money.format(inv.subTotal)}'),
+                  if (inv.discountTotal > 0) _totRow('Discount', '- ₹ ${_money.format(inv.discountTotal)}', valueColor: _red),
+                  if (showCGST) _totRow('CGST (${taxPer.toStringAsFixed(1)}%)', '₹ ${_money.format(half)}'),
+                  if (showSGST) _totRow('SGST (${taxPer.toStringAsFixed(1)}%)', '₹ ${_money.format(half)}'),
+                  if (showIGST) _totRow('IGST (${inv.taxPercentage.toStringAsFixed(1)}%)', '₹ ${_money.format(inv.taxTotal)}'),
                   // Grand total — light blue bg, dark text (not dark navy)
                   pw.Container(
                     padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -410,7 +418,7 @@ class InvoicePdfGenerator {
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       children: [
                         _txt('GRAND TOTAL', size: 9, bold: true, color: _white),
-                        _txt('INR ${_money.format(inv.grandTotal)}', size: 10, bold: true, color: _white),
+                        _txt('₹ ${_money.format(inv.grandTotal)}', size: 10, bold: true, color: _white),
                       ],
                     ),
                   ),
@@ -622,7 +630,11 @@ class InvoicePdfGenerator {
   static pw.Widget _txt(String text, {double size = 8, bool bold = false, PdfColor color = _textDark, pw.TextAlign align = pw.TextAlign.left}) => pw.Text(
     text,
     textAlign: align,
-    style: pw.TextStyle(fontSize: size, fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal, color: color),
+    style: pw.TextStyle(
+      font: bold ? _fontBold : _fontRegular,
+      fontSize: size,
+      color: color,
+    ),
   );
 
   static pw.Widget _bankRow(String label, String value) => pw.Padding(
