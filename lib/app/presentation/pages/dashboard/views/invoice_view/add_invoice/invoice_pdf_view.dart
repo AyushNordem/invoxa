@@ -291,7 +291,7 @@ class InvoicePdfGenerator {
           children: [
             _txt('Amount Chargeable (in words)', size: 7.5, color: _navyLight),
             pw.SizedBox(height: 2),
-            _txt('INR ${_toWords(inv.grandTotal)} Only', size: 9, bold: true),
+            _txt('INR ${toWords(inv.grandTotal)} Only', size: 9, bold: true),
           ],
         ),
       ),
@@ -426,7 +426,7 @@ class InvoicePdfGenerator {
   static const _ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
   static const _tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
-  static String _toWords(double amount) {
+  static String toWords(double amount) {
     final rupees = amount.toInt();
     final paise = ((amount - rupees) * 100).round();
     var w = _wordsFor(rupees);

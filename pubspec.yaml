@@ -33,6 +33,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/Section - Promotional Magic Card.png
     - assets/logo.png
 assets:
   - assets/

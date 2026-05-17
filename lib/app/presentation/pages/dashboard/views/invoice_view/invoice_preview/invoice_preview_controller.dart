@@ -1,36 +1,74 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:get/get.dart';
+import 'package:printing/printing.dart';
+
+import '../../../../../../core/utils/app_snackbar.dart';
+import '../../../../../../data/models/invoice_model.dart';
+import '../add_invoice/invoice_pdf_view.dart';
 
 class InvoicePreviewController extends GetxController {
-  final invoiceData = {
-    'id': 'INV-2024-001',
-    'status': 'DRAFT',
-    'clientName': 'Acme Corp',
-    'clientEmail': 'billing@acme.com',
-    'clientAddress': '456 Enterprise Way,\nSan Francisco, CA',
-    'date': 'Oct 24, 2024',
-    'dueDate': 'Nov 10, 2024',
-    'items': [
-      {
-        'title': 'UI/UX Design Package',
-        'desc': 'Standard mobile app design',
-        'qty': 1,
-        'price': 2400.0,
-      },
-      {
-        'title': 'Brand Identity Audit',
-        'desc': 'Comprehensive style review',
-        'qty': 1,
-        'price': 850.0,
-      },
-    ],
-    'subtotal': 3250.0,
-    'tax': 585.0,
-    'total': 3835.0,
-    'amountInWords': 'Three Thousand Eight Hundred Thirty Five Dollars Only.',
-    'bankDetails': {
-      'bank': 'HDFC',
-      'account': '50200012345678',
-      'ifsc': 'HDFC0001234',
+  final invoice = Rxn<InvoiceModel>();
+  final isLoading = false.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    if (Get.arguments is InvoiceModel) {
+      invoice.value = Get.arguments as InvoiceModel;
     }
-  }.obs;
+  }
+
+  Future<void> shareInvoice() async {
+    final inv = invoice.value;
+    if (inv == null) return;
+
+    try {
+      isLoading.value = true;
+      final pdfBytes = await InvoicePdfGenerator.generate(inv);
+      await Printing.sharePdf(
+        bytes: pdfBytes,
+        filename: 'invoice_${inv.invoiceNumber ?? "INV"}.pdf',
+      );
+    } catch (e) {
+      AppSnackbar.showError(title: 'Error', message: 'Failed to share PDF: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> downloadInvoice() async {
+    final inv = invoice.value;
+    if (inv == null) return;
+
+    try {
+      isLoading.value = true;
+      final pdfBytes = await InvoicePdfGenerator.generate(inv);
+      await Printing.layoutPdf(
+        onLayout: (format) => pdfBytes,
+        name: 'invoice_${inv.invoiceNumber ?? "INV"}',
+      );
+    } catch (e) {
+      AppSnackbar.showError(title: 'Error', message: 'Failed to download PDF: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> markAsPaid() async {
+    final inv = invoice.value;
+    if (inv == null || inv.id == null) return;
+
+    try {
+      isLoading.value = true;
+      await FirebaseFirestore.instance.collection('invoices').doc(inv.id).update({'status': 'Paid'});
+      
+      // Update local state
+      invoice.value = inv.copyWith(status: 'Paid');
+      AppSnackbar.showSuccess(title: 'Success', message: 'Invoice marked as Paid');
+    } catch (e) {
+      AppSnackbar.showError(title: 'Error', message: 'Failed to update status: $e');
+    } finally {
+      isLoading.value = false;
+    }
+  }
 }

@@ -11,7 +11,6 @@ import '../../../../../core/theme/style_resource.dart';
 import '../../../../../core/utils/app_snackbar.dart';
 import '../../../../../data/models/invoice_model.dart';
 import '../../../../../routes/app_pages.dart';
-import 'add_invoice/invoice_pdf_view.dart';
 import 'invoice_controller.dart';
 
 class InvoiceScreen extends GetView<InvoiceController> {
@@ -238,7 +237,7 @@ class InvoiceScreen extends GetView<InvoiceController> {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => Get.to(() => InvoicePreviewScreen(invoice: invoice)),
+              onTap: () => Get.toNamed(Routes.INVOICE_PREVIEW, arguments: invoice),
               child: Padding(
                 padding: const EdgeInsets.only(left: 14, top: 12, bottom: 12),
                 child: Row(
@@ -300,7 +299,7 @@ class InvoiceScreen extends GetView<InvoiceController> {
                       constraints: const BoxConstraints(),
                       onSelected: (value) async {
                         if (value == 'preview') {
-                          Get.to(() => InvoicePreviewScreen(invoice: invoice));
+                          Get.toNamed(Routes.INVOICE_PREVIEW, arguments: invoice);
                         } else if (value == 'open_link' && invoice.pdfUrl != null) {
                           final Uri url = Uri.parse(invoice.pdfUrl!);
                           if (await canLaunchUrl(url)) {
