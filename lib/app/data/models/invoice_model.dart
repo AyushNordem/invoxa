@@ -29,6 +29,7 @@ class InvoiceModel {
   final double taxPercentage;
 
   final String? notes;
+  final String? pdfUrl;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -51,6 +52,7 @@ class InvoiceModel {
     this.hasIGST = false,
     this.taxPercentage = 0.0,
     this.notes,
+    this.pdfUrl,
     this.createdAt,
     this.updatedAt,
   });
@@ -75,6 +77,7 @@ class InvoiceModel {
       hasIGST: map['hasIGST'] ?? false,
       taxPercentage: (map['taxPercentage'] ?? 0.0).toDouble(),
       notes: map['notes'],
+      pdfUrl: map['pdfUrl'],
       createdAt: (map['createdAt'] as Timestamp?)?.toDate(),
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate(),
     );
@@ -99,9 +102,58 @@ class InvoiceModel {
       'hasIGST': hasIGST,
       'taxPercentage': taxPercentage,
       'notes': notes,
+      'pdfUrl': pdfUrl,
       'createdAt': createdAt != null ? Timestamp.fromDate(createdAt!) : FieldValue.serverTimestamp(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
+  }
+
+  InvoiceModel copyWith({
+    String? id,
+    String? userId,
+    String? invoiceNumber,
+    DateTime? date,
+    DateTime? dueDate,
+    String? status,
+    BusinessModel? sellerDetails,
+    CustomerModel? buyerDetails,
+    List<InvoiceItem>? items,
+    double? subTotal,
+    double? discountTotal,
+    double? taxTotal,
+    double? grandTotal,
+    bool? hasCGST,
+    bool? hasSGST,
+    bool? hasIGST,
+    double? taxPercentage,
+    String? notes,
+    String? pdfUrl,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return InvoiceModel(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      invoiceNumber: invoiceNumber ?? this.invoiceNumber,
+      date: date ?? this.date,
+      dueDate: dueDate ?? this.dueDate,
+      status: status ?? this.status,
+      sellerDetails: sellerDetails ?? this.sellerDetails,
+      buyerDetails: buyerDetails ?? this.buyerDetails,
+      items: items ?? this.items,
+      subTotal: subTotal ?? this.subTotal,
+      discountTotal: discountTotal ?? this.discountTotal,
+      taxTotal: taxTotal ?? this.taxTotal,
+      grandTotal: grandTotal ?? this.grandTotal,
+      hasCGST: hasCGST ?? this.hasCGST,
+      hasSGST: hasSGST ?? this.hasSGST,
+      hasIGST: hasIGST ?? this.hasIGST,
+      taxPercentage: taxPercentage ?? this.taxPercentage,
+      notes: notes ?? this.notes,
+      pdfUrl: pdfUrl ?? this.pdfUrl,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:invoxa/app/presentation/pages/dashboard/views/profile_view/settings/settings_controller.dart';
 
+import '../../../../../../core/services/cloudinary_service.dart';
 import '../../../../../../core/utils/app_constants.dart';
 import '../../../../../../core/utils/app_snackbar.dart';
 import '../../../../../../core/utils/invoice_number_generator.dart';
@@ -11,6 +12,7 @@ import '../../../../../../data/models/business_model.dart';
 import '../../../../../../data/models/customer_model.dart';
 import '../../../../../../data/models/invoice_model.dart';
 import '../../../../../../data/models/setting_model.dart';
+import 'invoice_pdf_view.dart';
 
 class AddInvoiceController extends GetxController {
   final isLoading = false.obs;
@@ -224,11 +226,23 @@ class AddInvoiceController extends GetxController {
       // 2. Use the live currentInvoice
       final invoice = currentInvoice;
 
-      // 3. Save to Firebase
-      await FirebaseFirestore.instance.collection('invoices').add(invoice.toMap());
+      // 3. Generate PDF Bytes
+      final pdfBytes = await InvoicePdfGenerator.generate(invoice);
+
+      // 4. Upload PDF to Cloudinary
+      final pdfUrl = await CloudinaryService.uploadPdf(pdfBytes, 'invoice_${invoice.invoiceNumber}.pdf');
+      if (pdfUrl == null) {
+        throw Exception('Failed to upload invoice PDF to Cloudinary');
+      }
+
+      // 5. Update invoice object with Cloudinary PDF URL
+      final invoiceWithPdf = invoice.copyWith(pdfUrl: pdfUrl);
+
+      // 6. Save to Firebase
+      await FirebaseFirestore.instance.collection('invoices').add(invoiceWithPdf.toMap());
       AppSnackbar.showSuccess(title: 'Success', message: 'Invoice ${invoice.invoiceNumber} saved successfully');
 
-      // 4. Return success result
+      // 7. Return success result
       Get.back(result: true);
     } catch (e) {
       AppSnackbar.showError(title: 'Save Failed', message: e.toString());
