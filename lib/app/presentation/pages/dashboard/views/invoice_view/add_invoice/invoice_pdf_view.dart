@@ -214,6 +214,21 @@ class InvoicePdfGenerator {
   static pw.Widget _itemsTable(InvoiceModel inv) {
     final items = inv.items ?? [];
 
+    // Extract unit short name helper (e.g. "Square Feet (sq ft)" -> "sq ft")
+    String getShortUnit(String? unit) {
+      if (unit == null || unit.isEmpty) return 'Pcs';
+      final startIndex = unit.indexOf('(');
+      final endIndex = unit.indexOf(')');
+      if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+        return unit.substring(startIndex + 1, endIndex).trim();
+      }
+      final lower = unit.toLowerCase().trim();
+      if (lower == 'packet') return 'pkt';
+      if (lower == 'piece') return 'pcs';
+      if (lower == 'number') return 'nos';
+      return unit;
+    }
+
     // Header labels (without CGST, SGST, IGST, or total row)
     final headers = <String>['Sl No.', 'Description', 'HSN/SAC', 'Qty', 'Unit', 'Rate', 'Disc%', 'Amount'];
 
@@ -235,19 +250,32 @@ class InvoicePdfGenerator {
     final showIGST = inv.hasIGST;
     final taxPerItem = inv.taxPercentage / (showCGST && showSGST ? 2 : 1);
 
-    // Beautiful styling helper for borderless left and aligned right cells
-    pw.Widget calcCell(String text, {bool bold = false, bool isAmount = false, bool isLeftBorder = false, bool isBottomBorder = false}) {
+    pw.Widget calcCell(String text, {bool bold = false, bool isAmount = false, bool hasBg = false, bool isLeft = false, bool isRight = false}) {
       return pw.Container(
-        padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 4.5),
+        padding: const pw.EdgeInsets.symmetric(horizontal: 4, vertical: 5),
         decoration: pw.BoxDecoration(
-          color: isAmount && isBottomBorder ? _stripe : _white,
+          color: hasBg ? _stripe : _white,
           border: pw.Border(
-            left: isLeftBorder ? const pw.BorderSide(color: _border, width: 0.4) : pw.BorderSide.none,
-            right: const pw.BorderSide(color: _border, width: 0.4),
-            bottom: isBottomBorder ? const pw.BorderSide(color: _border, width: 0.4) : pw.BorderSide.none,
+            left: isLeft ? const pw.BorderSide(color: _border, width: 0.4) : pw.BorderSide.none,
+            right: isRight ? const pw.BorderSide(color: _border, width: 0.4) : pw.BorderSide.none,
+            bottom: const pw.BorderSide(color: _border, width: 0.4),
           ),
         ),
         child: _txt(text, size: 7.5, bold: bold, color: _textDark, align: isAmount ? pw.TextAlign.right : pw.TextAlign.left),
+      );
+    }
+
+    pw.TableRow calcRow(String label, String value, {bool bold = false, bool hasBg = false}) {
+      return pw.TableRow(
+        children: [
+          pw.Container(),
+          pw.Container(),
+          pw.Container(),
+          pw.Container(),
+          pw.Container(),
+          calcCell(label, bold: bold, hasBg: hasBg, isLeft: true),
+          calcCell(value, bold: bold, isAmount: true, hasBg: hasBg, isRight: true),
+        ],
       );
     }
 
@@ -272,7 +300,7 @@ class InvoicePdfGenerator {
                   cell([item.name, item.description].where((s) => s != null && s.isNotEmpty).join('\n'), align: pw.TextAlign.left, stripe: isStripe),
                   cell(item.hsnCode ?? '', stripe: isStripe),
                   cell(item.quantity.toStringAsFixed(2), stripe: isStripe),
-                  cell(item.unit ?? 'Pcs', stripe: isStripe),
+                  cell(getShortUnit(item.unit), stripe: isStripe),
                   cell(_money.format(item.rate), stripe: isStripe),
                   cell(item.discount > 0 ? '${item.discount}%' : '-', stripe: isStripe),
                   cell(_money.format(item.amount), stripe: isStripe),
@@ -294,82 +322,22 @@ class InvoicePdfGenerator {
             6: const pw.FlexColumnWidth(1.3), // Amount aligned
           },
           children: [
-            // Sub Total Row
-            pw.TableRow(
-              children: [
-                pw.Container(),
-                pw.Container(),
-                pw.Container(),
-                pw.Container(),
-                pw.Container(),
-                calcCell('Sub Total', bold: true, isLeftBorder: true),
-                calcCell('INR ${_money.format(inv.subTotal)}', isAmount: true),
-              ],
-            ),
+            // Sub Total Row (Highlighted Background)
+            calcRow('Sub Total', 'INR ${_money.format(inv.subTotal)}', bold: true, hasBg: true),
             // Discount Row
             if (inv.discountTotal > 0)
-              pw.TableRow(
-                children: [
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  calcCell('Discount', bold: true, isLeftBorder: true),
-                  calcCell('- INR ${_money.format(inv.discountTotal)}', isAmount: true),
-                ],
-              ),
+              calcRow('Discount', '- INR ${_money.format(inv.discountTotal)}'),
             // CGST Row
             if (showCGST)
-              pw.TableRow(
-                children: [
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  calcCell('CGST (${taxPerItem.toStringAsFixed(1)}%)', bold: true, isLeftBorder: true),
-                  calcCell('INR ${_money.format(inv.taxTotal / 2)}', isAmount: true),
-                ],
-              ),
+              calcRow('CGST (${taxPerItem.toStringAsFixed(1)}%)', 'INR ${_money.format(inv.taxTotal / 2)}'),
             // SGST Row
             if (showSGST)
-              pw.TableRow(
-                children: [
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  calcCell('SGST (${taxPerItem.toStringAsFixed(1)}%)', bold: true, isLeftBorder: true),
-                  calcCell('INR ${_money.format(inv.taxTotal / 2)}', isAmount: true),
-                ],
-              ),
+              calcRow('SGST (${taxPerItem.toStringAsFixed(1)}%)', 'INR ${_money.format(inv.taxTotal / 2)}'),
             // IGST Row
             if (showIGST)
-              pw.TableRow(
-                children: [
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  pw.Container(),
-                  calcCell('IGST (${inv.taxPercentage.toStringAsFixed(1)}%)', bold: true, isLeftBorder: true),
-                  calcCell('INR ${_money.format(inv.taxTotal)}', isAmount: true),
-                ],
-              ),
-            // Grand Total Row
-            pw.TableRow(
-              children: [
-                pw.Container(),
-                pw.Container(),
-                pw.Container(),
-                pw.Container(),
-                pw.Container(),
-                calcCell('Grand Total', bold: true, isLeftBorder: true, isBottomBorder: true),
-                calcCell('INR ${_money.format(inv.grandTotal)}', bold: true, isAmount: true, isBottomBorder: true),
-              ],
-            ),
+              calcRow('IGST (${inv.taxPercentage.toStringAsFixed(1)}%)', 'INR ${_money.format(inv.taxTotal)}'),
+            // Grand Total Row (Highlighted Background)
+            calcRow('Grand Total', 'INR ${_money.format(inv.grandTotal)}', bold: true, hasBg: true),
           ],
         ),
       ],
