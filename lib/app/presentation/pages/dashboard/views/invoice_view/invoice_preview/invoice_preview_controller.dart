@@ -75,7 +75,7 @@ class InvoicePreviewController extends GetxController {
         final pdfBytes = await InvoicePdfGenerator.generate(inv);
         await Printing.layoutPdf(
           onLayout: (format) => pdfBytes,
-          name: 'invoice_${inv.invoiceNumber ?? "INV"}',
+          name: 'invoice_${inv.invoiceNumber?.replaceAll('/', '_') ?? "INV"}',
         );
       } catch (ex) {
         AppSnackbar.showError(title: 'Error', message: 'Failed to download PDF: $ex');

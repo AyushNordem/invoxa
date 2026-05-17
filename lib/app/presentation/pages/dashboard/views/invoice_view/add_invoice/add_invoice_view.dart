@@ -51,33 +51,33 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
   }
 
   Widget _buildInvoicePreviewSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Obx(
+      () => Visibility(
+        visible: controller.items.isNotEmpty && controller.selectedCustomer.value != null,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('INVOICE PREVIEW', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1.5)),
-            TextButton.icon(
-              onPressed: () => Get.to(() => InvoicePreviewScreen(invoice: controller.currentInvoice)),
-              icon: const Icon(Icons.fullscreen_rounded, size: 18),
-              label: Text('FULL SCREEN', style: StyleResource.instance.styleBold(fontSize: 12)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('INVOICE PREVIEW', style: StyleResource.instance.styleBold(fontSize: 12, color: AppColors.greyText).copyWith(letterSpacing: 1.5)),
+                TextButton.icon(
+                  onPressed: () => Get.to(() => InvoicePreviewScreen(invoice: controller.currentInvoice)),
+                  icon: const Icon(Icons.fullscreen_rounded, size: 18),
+                  label: Text('FULL SCREEN', style: StyleResource.instance.styleBold(fontSize: 12)),
+                ),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Obx(
-          () => Visibility(
-            visible: controller.items.isNotEmpty && controller.selectedCustomer.value != null,
-            child: SizedBox(
+            const SizedBox(height: 8),
+            SizedBox(
               height: 500,
               width: double.infinity,
 
               child: PdfPreview(build: (format) => InvoicePdfGenerator.generate(controller.currentInvoice), allowPrinting: false, allowSharing: false, canChangePageFormat: false, canChangeOrientation: false, initialPageFormat: PdfPageFormat.a4, padding: EdgeInsets.zero, maxPageWidth: 400),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 

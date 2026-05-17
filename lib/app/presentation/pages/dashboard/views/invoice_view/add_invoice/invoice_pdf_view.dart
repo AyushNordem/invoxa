@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:invoxa/app/data/models/invoice_model.dart';
 import 'package:invoxa/app/presentation/widgets/base_view.dart';
@@ -93,6 +94,16 @@ class InvoicePdfGenerator {
     return _unitMap[cleanUnit] ?? cleanUnit.toUpperCase();
   }
 
+  static Future<pw.ImageProvider?> _safeNetworkImage(String url) async {
+    try {
+      final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 2));
+      if (response.statusCode == 200) {
+        return pw.MemoryImage(response.bodyBytes);
+      }
+    } catch (_) {}
+    return null;
+  }
+
   // ── Public API ────────────────────────────────────────────────────────────
   static Future<Uint8List> generate(InvoiceModel invoice) async {
     final pdf = pw.Document();
@@ -104,14 +115,10 @@ class InvoicePdfGenerator {
     final logoUrl = invoice.sellerDetails?.logoUrl;
 
     if (sigUrl != null && sigUrl.isNotEmpty) {
-      try {
-        signatureImage = await networkImage(sigUrl);
-      } catch (_) {}
+      signatureImage = await _safeNetworkImage(sigUrl);
     }
     if (logoUrl != null && logoUrl.isNotEmpty) {
-      try {
-        logoImage = await networkImage(logoUrl);
-      } catch (_) {}
+      logoImage = await _safeNetworkImage(logoUrl);
     }
 
     pdf.addPage(_page(invoice, 'ORIGINAL FOR RECIPIENT', signatureImage, logoImage));
