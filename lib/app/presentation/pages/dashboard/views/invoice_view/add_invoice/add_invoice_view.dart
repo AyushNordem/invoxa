@@ -69,33 +69,17 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
         Obx(
           () => Visibility(
             visible: controller.items.isNotEmpty && controller.selectedCustomer.value != null,
-            child: Container(
-              height: 400,
+            child: SizedBox(
+              height: 500,
               width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.primary.withOpacity(0.1)),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: PdfPreview(
-                  build: (format) => InvoicePdfGenerator.generate(controller.currentInvoice),
-                  allowPrinting: true,
-                  allowSharing: true,
-                  canChangePageFormat: false,
-                  canChangeOrientation: false,
-                  initialPageFormat: PdfPageFormat.a4,
-                  padding: EdgeInsets.zero,
-                  maxPageWidth: 400,
-                ),
-              ),
+
+              child: PdfPreview(build: (format) => InvoicePdfGenerator.generate(controller.currentInvoice), allowPrinting: false, allowSharing: false, canChangePageFormat: false, canChangeOrientation: false, initialPageFormat: PdfPageFormat.a4, padding: EdgeInsets.zero, maxPageWidth: 400),
             ),
           ),
         ),
       ],
     );
   }
-
 
   Widget _buildMagicHeader() {
     return Container(

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:invoxa/app/data/models/invoice_model.dart';
+import 'package:invoxa/app/presentation/widgets/base_view.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -467,24 +468,9 @@ class InvoicePreviewScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Invoice Preview'),
-        backgroundColor: const Color(0xFF1A237E),
-        foregroundColor: Colors.white,
-        actions: [
-          // Share / Print / Download button — built-in
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () async {
-              final bytes = await InvoicePdfGenerator.generate(invoice);
-              await Printing.sharePdf(bytes: bytes, filename: 'Invoice_${invoice.invoiceNumber}.pdf');
-            },
-          ),
-        ],
-      ),
-      // ✅ This single widget renders the PDF as scrollable pages
-      body: PdfPreview(
+    return BaseView(
+      title: 'Invoice Preview',
+      child: PdfPreview(
         build: (format) => InvoicePdfGenerator.generate(invoice),
         allowPrinting: true, // shows print button
         allowSharing: true, // shows share button
