@@ -10,6 +10,7 @@ class InvoiceModel {
   final DateTime? date;
   final DateTime? dueDate;
   final String? status; // 'Paid', 'Pending', 'Draft'
+  final String currency;
 
   // Snapshots for persistence
   final BusinessModel? sellerDetails;
@@ -40,6 +41,7 @@ class InvoiceModel {
     this.date,
     this.dueDate,
     this.status = 'Pending',
+    this.currency = '₹',
     this.sellerDetails,
     this.buyerDetails,
     this.items,
@@ -65,6 +67,7 @@ class InvoiceModel {
       date: (map['date'] as Timestamp?)?.toDate(),
       dueDate: (map['dueDate'] as Timestamp?)?.toDate(),
       status: map['status'] ?? 'Pending',
+      currency: map['currency']?.toString() ?? '₹',
       sellerDetails: map['sellerDetails'] != null ? BusinessModel.fromMap(map['sellerDetails']) : null,
       buyerDetails: map['buyerDetails'] != null ? CustomerModel.fromMap(map['buyerDetails']) : null,
       items: (map['items'] as List?)?.map((i) => InvoiceItem.fromMap(i)).toList(),
@@ -90,6 +93,7 @@ class InvoiceModel {
       'date': date != null ? Timestamp.fromDate(date!) : null,
       'dueDate': dueDate != null ? Timestamp.fromDate(dueDate!) : null,
       'status': status,
+      'currency': currency,
       'sellerDetails': sellerDetails?.toMap(),
       'buyerDetails': buyerDetails?.toMap(),
       'items': items?.map((i) => i.toMap()).toList(),
@@ -115,6 +119,7 @@ class InvoiceModel {
     DateTime? date,
     DateTime? dueDate,
     String? status,
+    String? currency,
     BusinessModel? sellerDetails,
     CustomerModel? buyerDetails,
     List<InvoiceItem>? items,
@@ -138,6 +143,7 @@ class InvoiceModel {
       date: date ?? this.date,
       dueDate: dueDate ?? this.dueDate,
       status: status ?? this.status,
+      currency: currency ?? this.currency,
       sellerDetails: sellerDetails ?? this.sellerDetails,
       buyerDetails: buyerDetails ?? this.buyerDetails,
       items: items ?? this.items,

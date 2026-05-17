@@ -307,7 +307,8 @@ class InvoicePdfGenerator {
   // ── Items Table ───────────────────────────────────────────────────────────
   static pw.Widget _itemsTable(InvoiceModel inv) {
     final items = inv.items ?? [];
-    final headers = ['#', 'ITEM & DESCRIPTION', 'HSN/SAC', 'QTY', 'UNIT', 'RATE (₹)', 'DISC%', 'AMOUNT (₹)'];
+    final currency = inv.currency;
+    final headers = ['#', 'ITEM & DESCRIPTION', 'HSN/SAC', 'QTY', 'UNIT', 'RATE ($currency)', 'DISC%', 'AMOUNT ($currency)'];
     final flexes = <double>[0.5, 3.2, 1.0, 0.7, 0.7, 1.2, 0.7, 1.4];
 
     final colWidths = <int, pw.TableColumnWidth>{for (var i = 0; i < flexes.length; i++) i: pw.FlexColumnWidth(flexes[i])};
@@ -405,11 +406,11 @@ class InvoicePdfGenerator {
                       ],
                     ),
                   ),
-                  _totRow('Sub Total', '₹ ${_money.format(inv.subTotal)}'),
-                  if (inv.discountTotal > 0) _totRow('Discount', '- ₹ ${_money.format(inv.discountTotal)}', valueColor: _red),
-                  if (showCGST) _totRow('CGST (${taxPer.toStringAsFixed(1)}%)', '₹ ${_money.format(half)}'),
-                  if (showSGST) _totRow('SGST (${taxPer.toStringAsFixed(1)}%)', '₹ ${_money.format(half)}'),
-                  if (showIGST) _totRow('IGST (${inv.taxPercentage.toStringAsFixed(1)}%)', '₹ ${_money.format(inv.taxTotal)}'),
+                  _totRow('Sub Total', '${inv.currency} ${_money.format(inv.subTotal)}'),
+                  if (inv.discountTotal > 0) _totRow('Discount', '- ${inv.currency} ${_money.format(inv.discountTotal)}', valueColor: _red),
+                  if (showCGST) _totRow('CGST (${taxPer.toStringAsFixed(1)}%)', '${inv.currency} ${_money.format(half)}'),
+                  if (showSGST) _totRow('SGST (${taxPer.toStringAsFixed(1)}%)', '${inv.currency} ${_money.format(half)}'),
+                  if (showIGST) _totRow('IGST (${inv.taxPercentage.toStringAsFixed(1)}%)', '${inv.currency} ${_money.format(inv.taxTotal)}'),
                   // Grand total — light blue bg, dark text (not dark navy)
                   pw.Container(
                     padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -418,7 +419,7 @@ class InvoicePdfGenerator {
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       children: [
                         _txt('GRAND TOTAL', size: 9, bold: true, color: _white),
-                        _txt('₹ ${_money.format(inv.grandTotal)}', size: 10, bold: true, color: _white),
+                        _txt('${inv.currency} ${_money.format(inv.grandTotal)}', size: 10, bold: true, color: _white),
                       ],
                     ),
                   ),

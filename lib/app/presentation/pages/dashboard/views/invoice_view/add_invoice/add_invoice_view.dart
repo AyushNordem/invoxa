@@ -393,7 +393,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                               children: [
                                 Text('QTY / RATE', style: StyleResource.instance.styleBold(fontSize: 10, color: AppColors.greyText).copyWith(letterSpacing: 1)),
                                 const SizedBox(height: 4),
-                                Text('${item.quantity} x ₹${item.rate}', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.secondary)),
+                                Text('${item.quantity} x ${controller.currencySymbol}${item.rate}', style: StyleResource.instance.styleBold(fontSize: 14, color: AppColors.secondary)),
                               ],
                             ),
                             if (item.discount > 0)
@@ -410,7 +410,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
                               children: [
                                 Text('TOTAL AMOUNT', style: StyleResource.instance.styleBold(fontSize: 10, color: AppColors.primary).copyWith(letterSpacing: 1)),
                                 const SizedBox(height: 4),
-                                Text('₹${item.amount.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 18, color: AppColors.primary)),
+                                Text('${controller.currencySymbol}${item.amount.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 18, color: AppColors.primary)),
                               ],
                             ),
                           ],
@@ -508,11 +508,11 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
         ),
         child: Column(
           children: [
-            _buildSummaryLine('Sub Total', '₹${controller.subTotal.toStringAsFixed(2)}'),
-            _buildSummaryLine('Discount', '-₹${controller.discountTotal.toStringAsFixed(2)}', valueColor: Colors.redAccent),
-            if (controller.hasCGST.value) _buildSummaryLine('CGST (${(controller.hasSGST.value ? controller.taxPercentage.value / 2 : controller.taxPercentage.value).toInt()}%)', '₹${controller.cgstAmount.toStringAsFixed(2)}'),
-            if (controller.hasSGST.value) _buildSummaryLine('SGST (${(controller.hasCGST.value ? controller.taxPercentage.value / 2 : controller.taxPercentage.value).toInt()}%)', '₹${controller.sgstAmount.toStringAsFixed(2)}'),
-            if (controller.hasIGST.value) _buildSummaryLine('IGST (${controller.taxPercentage.value.toInt()}%)', '₹${controller.igstAmount.toStringAsFixed(2)}'),
+            _buildSummaryLine('Sub Total', '${controller.currencySymbol}${controller.subTotal.toStringAsFixed(2)}'),
+            _buildSummaryLine('Discount', '-${controller.currencySymbol}${controller.discountTotal.toStringAsFixed(2)}', valueColor: Colors.redAccent),
+            if (controller.hasCGST.value) _buildSummaryLine('CGST (${(controller.hasSGST.value ? controller.taxPercentage.value / 2 : controller.taxPercentage.value).toInt()}%)', '${controller.currencySymbol}${controller.cgstAmount.toStringAsFixed(2)}'),
+            if (controller.hasSGST.value) _buildSummaryLine('SGST (${(controller.hasCGST.value ? controller.taxPercentage.value / 2 : controller.taxPercentage.value).toInt()}%)', '${controller.currencySymbol}${controller.sgstAmount.toStringAsFixed(2)}'),
+            if (controller.hasIGST.value) _buildSummaryLine('IGST (${controller.taxPercentage.value.toInt()}%)', '${controller.currencySymbol}${controller.igstAmount.toStringAsFixed(2)}'),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Divider(color: Colors.white12),
@@ -521,7 +521,7 @@ class AddInvoiceView extends GetView<AddInvoiceController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text('Grand Total', style: StyleResource.instance.styleBold(fontSize: 20, color: Colors.white)),
-                Text('₹${controller.grandTotal.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 28, color: AppColors.primary)),
+                Text('${controller.currencySymbol}${controller.grandTotal.toStringAsFixed(2)}', style: StyleResource.instance.styleBold(fontSize: 28, color: AppColors.primary)),
               ],
             ),
           ],

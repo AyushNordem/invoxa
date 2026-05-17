@@ -179,12 +179,24 @@ class AddInvoiceController extends GetxController {
     selectedCustomer.value = customer;
   }
 
+  String _extractCurrencySymbol(String? currencyStr) {
+    if (currencyStr == null || currencyStr.trim().isEmpty) return '₹';
+    final parts = currencyStr.trim().split(' ');
+    if (parts.isNotEmpty) {
+      return parts[0].trim();
+    }
+    return '₹';
+  }
+
+  String get currencySymbol => _extractCurrencySymbol(appSettings.value?.currency);
+
   InvoiceModel get currentInvoice => InvoiceModel(
         userId: FirebaseAuth.instance.currentUser?.uid,
         invoiceNumber: invoiceNumber.value,
         date: invoiceDate.value,
         dueDate: dueDate.value,
         status: 'Pending',
+        currency: _extractCurrencySymbol(appSettings.value?.currency),
         sellerDetails: sellerProfile.value,
         buyerDetails: selectedCustomer.value,
         items: items.toList(),
