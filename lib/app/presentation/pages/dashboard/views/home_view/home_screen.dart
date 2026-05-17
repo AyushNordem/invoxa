@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../../res/assets_res.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_sizes.dart';
 import '../../../../../core/theme/style_resource.dart';
@@ -258,7 +259,7 @@ class HomeScreen extends GetView<HomeController> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text('RECENT ACTIVITY', style: StyleResource.instance.styleSemiBold(fontSize: 12, color: AppColors.greyText)),
+        Text('RECENT INVOICE', style: StyleResource.instance.styleSemiBold(fontSize: 12, color: AppColors.greyText)),
         Text('View All', style: StyleResource.instance.styleSemiBold(fontSize: 12, color: AppColors.primary)),
       ],
     );
@@ -327,9 +328,10 @@ class HomeScreen extends GetView<HomeController> {
   Widget _buildPromoBanner() {
     return Container(
       width: double.infinity,
+
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFFFF6B00), Color(0xFFFF8E3C)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+        image: const DecorationImage(image: AssetImage(AssetsRes.SECTION___PROMOTIONAL_MAGIC_CARD), fit: BoxFit.fill),
         borderRadius: AppRadius.card,
       ),
       child: Column(

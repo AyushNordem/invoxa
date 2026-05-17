@@ -8,5 +8,6 @@ class AssetsRes {
 
   static const String PROJECT_NAME = 'invoxa';
   static const String PROJECT_VERSION = '1.0.0+1';
+  static const String SECTION___PROMOTIONAL_MAGIC_CARD = 'assets/Section - Promotional Magic Card.png';
   static const String LOGO = 'assets/logo.png';
 }
