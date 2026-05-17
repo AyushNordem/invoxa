@@ -12,14 +12,14 @@ import '../../../../../../data/models/business_model.dart';
 import '../../../../../../data/models/customer_model.dart';
 
 class InvoicePdfGenerator {
-  // ── Palette — Light & Professional ───────────────────────────────────────
-  static const _primary = PdfColor.fromInt(0xFF1565C0); // medium blue
-  static const _primaryDk = PdfColor.fromInt(0xFF0D47A1); // darker blue (accents)
-  static const _primaryLt = PdfColor.fromInt(0xFFE3F2FD); // very light blue bg
-  static const _accent = PdfColor.fromInt(0xFF1976D2);
-  static const _border = PdfColor.fromInt(0xFFBBDEFB); // light blue border
-  static const _borderGrey = PdfColor.fromInt(0xFFE0E0E0);
-  static const _stripe = PdfColor.fromInt(0xFFF9FBFF); // almost white
+  // ── Palette — Royal Midnight Navy & Steel ──────────────────────────────────
+  static const _primary = PdfColor.fromInt(0xFF1A237E); // Gorgeous Midnight Navy
+  static const _primaryDk = PdfColor.fromInt(0xFF0D1B60); // Very Dark Navy (accents)
+  static const _primaryLt = PdfColor.fromInt(0xFFF0F4FA); // Soft Light Blue-Grey Background
+  static const _accent = PdfColor.fromInt(0xFF283593); // Royal Blue Accent
+  static const _border = PdfColor.fromInt(0xFFCFD8DC); // Sleek Border Grey-Blue
+  static const _borderGrey = PdfColor.fromInt(0xFFECEFF1); // Very Light Grey Border
+  static const _stripe = PdfColor.fromInt(0xFFF8F9FF); // Soft stripe white-blue
   static const _textDark = PdfColor.fromInt(0xFF1A1A2E);
   static const _textMid = PdfColor.fromInt(0xFF455A64);
   static const _textLight = PdfColor.fromInt(0xFF78909C);
@@ -84,8 +84,13 @@ class InvoicePdfGenerator {
 
   static String _shortUnit(String? unit) {
     if (unit == null || unit.trim().isEmpty) return 'PCS';
-    final key = unit.trim().toLowerCase();
-    return _unitMap[key] ?? unit.toUpperCase();
+    final startIndex = unit.indexOf('(');
+    final endIndex = unit.indexOf(')');
+    var cleanUnit = unit.trim().toLowerCase();
+    if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+      cleanUnit = unit.substring(startIndex + 1, endIndex).trim().toLowerCase();
+    }
+    return _unitMap[cleanUnit] ?? cleanUnit.toUpperCase();
   }
 
   // ── Public API ────────────────────────────────────────────────────────────
@@ -160,6 +165,7 @@ class InvoicePdfGenerator {
 
     return pw.Row(
       crossAxisAlignment: pw.CrossAxisAlignment.start,
+      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
       children: [
         // ── Left: Seller Identity ──
         pw.Expanded(
@@ -167,11 +173,10 @@ class InvoicePdfGenerator {
           child: pw.Row(
             crossAxisAlignment: pw.CrossAxisAlignment.start,
             children: [
-              // Logo (if available)
               if (logo != null) ...[
                 pw.Container(
-                  width: 52,
-                  height: 52,
+                  width: 48,
+                  height: 48,
                   decoration: pw.BoxDecoration(
                     border: pw.Border.all(color: _borderGrey, width: 0.5),
                     borderRadius: pw.BorderRadius.circular(4),
@@ -184,27 +189,20 @@ class InvoicePdfGenerator {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    // Business name
-                    _txt(_cap(s?.businessName ?? 'BUSINESS NAME'), size: 15, bold: true, color: _primaryDk),
-                    pw.SizedBox(height: 3),
-                    // Address line
-                    if ((s?.address?.street ?? '').isNotEmpty) _txt(_cap(s!.address!.street!), size: 8, color: _textMid),
-                    if ((s?.address?.city ?? '').isNotEmpty) _txt(_cap('${s?.address?.city ?? ""}${s?.address?.state != null ? ", ${s?.address?.state}" : ""}${s?.address?.pincode != null ? " - ${s?.address?.pincode}" : ""}'), size: 8, color: _textMid),
-                    pw.SizedBox(height: 5),
-                    // GSTIN, phone, email row
+                    _txt(_cap(s?.businessName ?? 'BUSINESS NAME'), size: 14, bold: true, color: _primary),
+                    pw.SizedBox(height: 2),
+                    if ((s?.address?.street ?? '').isNotEmpty) _txt(_cap(s!.address!.street!), size: 7.5, color: _textMid),
+                    if ((s?.address?.city ?? '').isNotEmpty) _txt(_cap('${s?.address?.city ?? ""}${s?.address?.state != null ? ", ${s?.address?.state}" : ""}${s?.address?.pincode != null ? " - ${s?.address?.pincode}" : ""}'), size: 7.5, color: _textMid),
+                    pw.SizedBox(height: 4),
                     pw.Wrap(
-                      spacing: 10,
-                      runSpacing: 3,
+                      spacing: 8,
+                      runSpacing: 2,
                       children: [
                         if ((s?.gstNumber ?? '').isNotEmpty) _labelValue('GSTIN', _cap(s!.gstNumber!)),
                         if ((s?.mobile ?? '').isNotEmpty) _labelValue('Phone', s!.mobile!),
                         if ((s?.email ?? '').isNotEmpty) _labelValue('Email', s!.email!),
-                        if ((s?.website ?? '').isNotEmpty) _labelValue('Web', s!.website!),
                       ],
                     ),
-                    // UDYAM / PAN if available
-                    pw.SizedBox(height: 3),
-                    pw.Wrap(spacing: 10, runSpacing: 3, children: [if ((s?.taxNumber ?? '').isNotEmpty) _labelValue('Tax Number', _cap(s!.taxNumber!))]),
                   ],
                 ),
               ),
@@ -212,47 +210,25 @@ class InvoicePdfGenerator {
           ),
         ),
 
-        pw.SizedBox(width: 14),
-
-        // ── Right: Invoice Meta Card (light background) ──
-        pw.Container(
-          width: 172,
-          decoration: pw.BoxDecoration(
-            color: _primaryLt,
-            border: pw.Border.all(color: _border, width: 0.8),
-            borderRadius: pw.BorderRadius.circular(6),
-          ),
+        // ── Right: Clean, Key-Value Invoice Info ──
+        pw.Expanded(
+          flex: 4,
           child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
             children: [
-              // Title bar — light blue
+              _txt('TAX INVOICE', size: 14, bold: true, color: _primary),
+              pw.SizedBox(height: 4),
+              _txt('INVOICE NO: ${inv.invoiceNumber ?? "-"}', size: 8, bold: true, color: _textDark),
+              pw.SizedBox(height: 2),
+              _txt('DATE: ${inv.date != null ? _date.format(inv.date!) : "-"}', size: 8, bold: true, color: _textDark),
+              pw.SizedBox(height: 4),
               pw.Container(
-                padding: const pw.EdgeInsets.symmetric(vertical: 6),
-                decoration: const pw.BoxDecoration(color: _primary),
-                child: pw.Center(child: _txt('TAX INVOICE', size: 9, bold: true, color: _white)),
-              ),
-              pw.Padding(
-                padding: const pw.EdgeInsets.fromLTRB(10, 10, 10, 8),
-                child: pw.Column(
-                  crossAxisAlignment: pw.CrossAxisAlignment.start,
-                  children: [
-                    _metaBlock('INVOICE NO.', inv.invoiceNumber ?? '-'),
-                    pw.SizedBox(height: 7),
-                    pw.Row(
-                      children: [
-                        pw.Expanded(child: _metaBlock('DATE', inv.date != null ? _date.format(inv.date!) : '-')),
-                        if (inv.dueDate != null) pw.Expanded(child: _metaBlock('DUE DATE', _date.format(inv.dueDate!))),
-                      ],
-                    ),
-                    pw.SizedBox(height: 8),
-                    _statusBadge(inv.status ?? 'Pending'),
-                  ],
+                padding: const pw.EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: pw.BoxDecoration(
+                  color: _primaryLt,
+                  borderRadius: pw.BorderRadius.circular(2),
                 ),
-              ),
-              // Copy label strip
-              pw.Container(
-                padding: const pw.EdgeInsets.symmetric(vertical: 4),
-                color: _accent,
-                child: pw.Center(child: _txt(copyLabel, size: 6.5, bold: true, color: _white)),
+                child: _txt(copyLabel.toUpperCase(), size: 6, bold: true, color: _primary),
               ),
             ],
           ),
